@@ -89,7 +89,7 @@ def Cor_h(H: List[int], rr: List[int]) -> None:
     # Compute rri0i0[], rri1i1[], rri2i2[], rri3i3 and rri4i4[]
     ############
 
-    rri0i0 = 0
+    rri0i0 = 0                  # index to variable rr
     rri1i1 = rri0i0 + ld8a.NB_POS
     rri2i2 = rri1i1 + ld8a.NB_POS
     rri3i3 = rri2i2 + ld8a.NB_POS
@@ -111,7 +111,7 @@ def Cor_h(H: List[int], rr: List[int]) -> None:
     p3 = rri3i3 + ld8a.NB_POS-1
     p4 = rri4i4 + ld8a.NB_POS-1
 
-    ptr_h1 = h
+    ptr_h1 = 0                  # index to variable h
     cor = 0
     for i in range(0, ld8a.NB_POS):
         cor = basic_op.L_mac(cor, rr[ptr_h1], rr[ptr_h1])
@@ -147,7 +147,7 @@ def Cor_h(H: List[int], rr: List[int]) -> None:
     l_fin_inf = l_fin_sup - 1
     ldec = ld8a.NB_POS + 1
 
-    ptr_hd = 0
+    ptr_hd = 0                  # index to variable h
     ptr_hf = ptr_hd + 1
 
     for k in range(0, ld8a.NB_POS):
@@ -212,10 +212,10 @@ def Cor_h(H: List[int], rr: List[int]) -> None:
         ptr_hf = ptr_hf + ld8a.STEP
 
     ############
-    # Compute elements of: rri2i3[], rri1i2[], rri0i1[] and rri0i4[]
+    # Compute elements of: rri2i4[], rri1i3[], rri0i2[], rri1i4[], rri0i3
     ############
 
-    ptr_hd = 0
+    ptr_hd = 0                  # index to variable h
     ptr_hf = ptr_hd + 2
     l_fin_sup = ld8a.MSIZE - 1
     l_fin_inf = l_fin_sup - 1
@@ -227,15 +227,182 @@ def Cor_h(H: List[int], rr: List[int]) -> None:
         p1 = rri1i4 + l_fin_inf
         p0 = rri0i3 + l_fin_inf
 
-        # CONTINUE
+        cor = 0
+        ptr_h1 = ptr_hd
+        ptr_h2 = ptr_hf
+        for i in range(k + 1, i < ld8a.NB_POS):
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p4] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p3] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p2] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p1] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p0] = basic_op.extract_h(cor)
+
+            p4 = p4 - ldec
+            p3 = p3 - ldec
+            p2 = p2 - ldec
+            p1 = p1 - ldec
+            p0 = p0 - ldec
+
+        cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+        ptr_h1 = increment(ptr_h1)
+        ptr_h2 = increment(ptr_h2)
+        rr[p4] = basic_op.extract_h(cor)
+
+        cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+        ptr_h1 = increment(ptr_h1)
+        ptr_h2 = increment(ptr_h2)
+        rr[p3] = basic_op.extract_h(cor)
+
+        cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+        ptr_h1 = increment(ptr_h1)
+        ptr_h2 = increment(ptr_h2)
+        rr[p2] = basic_op.extract_h(cor)
+
+        l_fin_sup = l_fin_sup - ld8a.NB_POS
+        l_fin_inf = decrement(l_fin_inf)
+        ptr_hf = ptr_hf + ld8a.STEP
 
     ############
     # Compute elements of: rri1i4[], rri0i3[], rri2i4[], rri1i3[], rri0i2
     ############
 
+    ptr_hd = 0                  # index to variable h
+    ptr_hf = ptr_hd + 3
+    l_fin_sup = ld8a.MSIZE - 1
+    l_fin_inf = l_fin_sup - 1
+
+    for k in range(0, ld8a.NB_POS):
+        p4 = rri1i4 + l_fin_sup
+        p3 = rri0i3 + l_fin_sup
+        p2 = rri2i4 + l_fin_inf
+        p1 = rri1i3 + l_fin_inf
+        p0 = rri0i2 + l_fin_inf
+
+        ptr_h1 = ptr_hd
+        ptr_h2 = ptr_hf
+        cor = 0
+
+        for i in range(k+1, ld8a.NB_POS):
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p4] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p3] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p2] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p1] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p0] = basic_op.extract_h(cor)
+
+            p4 = p4 - ldec
+            p3 = p3 - ldec
+            p2 = p2 - ldec
+            p1 = p1 - ldec
+            p0 = p0 - ldec
+
+        cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+        ptr_h1 = increment(ptr_h1)
+        ptr_h2 = increment(ptr_h2)
+        rr[p4] = basic_op.extract_h(cor)
+
+        cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+        ptr_h1 = increment(ptr_h1)
+        ptr_h2 = increment(ptr_h2)
+        rr[p3] = basic_op.extract_h(cor)
+
+        l_fin_sup = l_fin_sup - NB_POS
+        l_fin_inf = decrement(l_fin_inf)
+        ptr_hf = ptr_hf + STEP
+
     ############
     # Compute elements of: rri0i4[], rri2i3[], rri1i2[], rri0i1[]
     ############
+
+    ptr_hd = 0
+    ptr_hf = ptr_hd + 4
+    l_fin_sup = ld8a.MSIZE - 1
+    l_fin_inf = l_fin_sup - 1
+
+    for k in range(0, ld8a.NB_POS):
+        p3 = rri0i4 + l_fin_sup
+        p2 = rri2i3 + l_fin_inf
+        p1 = rri1i2 + l_fin_inf
+        p0 = rri0i1 + l_fin_inf
+
+        ptr_h1 = ptr_hd
+        ptr_h2 = ptr_hf
+        cor = 0
+
+        for i in range(k + 1, ld8a.NB_POS):
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p3] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p2] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p1] = basic_op.extract_h(cor)
+
+            cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+            ptr_h1 = increment(ptr_h1)
+            ptr_h2 = increment(ptr_h2)
+            rr[p0] = basic_op.extract_h(cor)
+
+            p3 = p3 - ldec
+            p2 = p2 - ldec
+            p1 = p1 - ldec
+            p0 = p0 - ldec
+
+        cor = basic_op.L_mac(cor, h[ptr_h1], h[ptr_h2])
+        ptr_h1 = increment(ptr_h1)
+        ptr_h2 = increment(ptr_h2)
+        rr[p3] = basic_op.extract_h(cor)
+
+        l_fin_sup = l_fin_sup - NB_POS
+        l_fin_inf = decrement(l_fin_inf)
+        ptr_hf = ptr_hf + STEP
 
 
 def D4i40_17_fast(
