@@ -20,8 +20,8 @@ def ACELP_Code_A(
     pitch_sharp: int,       # (i) Q14 :Last quantized pitch gain
     code: List[int],        # (o) Q13 :Innovative codebook
     y: List[int],           # (o) Q12 :Filtered innovative codebook
-    sign: int               # (o)     :Signs of 4 pulses
-):
+    sign: List[int]         # (o)     :Signs of 4 pulses
+) -> None:
     # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/ACELP_CA.C#L47
 
     Dn = [0] * ld8a.L_SUBFR
@@ -411,8 +411,326 @@ def D4i40_17_fast(
     h: List[int],           # (i) Q12: Impulse response of filters.
     cod: List[int],         # (o) Q13: Selected algebraic codeword.
     y: List[int],           # (o) Q12: Filtered algebraic codeword.
-    sign: int               # (o): Signs of 4 pulses.
-):
-    # (o) : Index of pulses positions.
+    sign: List[int]         # (o): Signs of 4 pulses.
+) -> None:
+    # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/ACELP_CA.C#L425
+
+    sign_dn = [0] * ld8a.L_SUBFR
+    sign_dn_inv = [0] * ld8a.L_SUBFR
+    tmp_vect = [0] * ld8a.NB_POS
+
+    # Init pointers to variable rr
+    rri0i0 = 0
+    rri1i1 = rri0i0 + ld8a.NB_POS
+    rri2i2 = rri1i1 + ld8a.NB_POS
+    rri3i3 = rri2i2 + ld8a.NB_POS
+    rri4i4 = rri3i3 + ld8a.NB_POS
+    rri0i1 = rri4i4 + ld8a.NB_POS
+    rri0i2 = rri0i1 + ld8a.MSIZE
+    rri0i3 = rri0i2 + ld8a.MSIZE
+    rri0i4 = rri0i3 + ld8a.MSIZE
+    rri1i2 = rri0i4 + ld8a.MSIZE
+    rri1i3 = rri1i2 + ld8a.MSIZE
+    rri1i4 = rri1i3 + ld8a.MSIZE
+    rri2i3 = rri1i4 + ld8a.MSIZE
+    rri2i4 = rri2i3 + ld8a.MSIZE
+
+    ############
+    # Chose the sign of the impulse.
+    ############
+
+    for i in range(0, ld8a.L_SUBFR):
+        if dn[i] >= 0:
+            sign_dn[i] = basic_op.MAX_INT_16
+            sign_dn_inv[i] = basic_op.MIN_INT_16
+        else:
+            sign_dn[i] = basic_op.MIN_INT_16
+            sign_dn_inv[i] = basic_op.MAX_INT_16
+            dn[i] = basic_op.negate(dn[i])
+
+    ############
+    # Modification of rrixiy[] to take signs into account.
+    ############
+
+    p0 = rri0i1
+    p1 = rri0i2
+    p2 = rri0i3
+    p3 = rri0i4
+
+    for i0 in range(0, ld8a.L_SUBFR, ld8a.STEP):
+        psign = 0
+        target = sign_dn
+
+        if sign_dn[psign + i0] < 0:
+            target = sign_dn_inv       # index to sign_dn_inv
+
+        for i1 in range(1, ld8a.L_SUBFR, ld8a.STEP):
+            rr[p0] = basic_op.mult(rr[p0], target[psign + i1])
+            p0 = increment(p0)
+
+            rr[p1] = basic_op.mult(rr[p1], target[psign + i1 + 1])
+            p1 = increment(p1)
+
+            rr[p2] = basic_op.mult(rr[p2], target[psign + i1 + 2])
+            p2 = increment(p2)
+
+            rr[p3] = basic_op.mult(rr[p3], target[psign + i1 + 3])
+            p3 = increment(p3)
+
+    p0 = rri1i2
+    p1 = rri1i3
+    p2 = rri1i4
+
+    for i1 in range(1, ld8a.L_SUBFR, ld8a.STEP):
+        psign = 0
+        target = sign_dn
+
+        if sign_dn[psign + i1] < 0:
+            target = sign_dn_inv       # index to sign_dn_inv
+
+        for i2 in range(2, ld8a.L_SUBFR, ld8a.STEP):
+            rr[p0] = basic_op.mult(rr[p0], target[psign + i2])
+            p0 = increment(p0)
+
+            rr[p1] = basic_op.mult(rr[p1], target[psign + i2 + 1])
+            p1 = increment(p1)
+
+            rr[p2] = basic_op.mult(rr[p2], target[psign + i2 + 2])
+            p2 = increment(p2)
+
+    p0 = rri2i3
+    p1 = rri2i4
+
+    for i2 in range(2, ld8a.L_SUBFR, ld8a.STEP):
+        psign = 0
+        target = sign_dn
+
+        if sign_dn[psign + i2] < 0:
+            target = sign_dn_inv       # index to sign_dn_inv
+
+        for i3 in range(3, ld8a.L_SUBFR, ld8a.STEP):
+            rr[p0] = basic_op.mult(rr[p0], target[psign + i3])
+            p0 = increment(p0)
+
+            rr[p1] = basic_op.mult(rr[p1], target[psign + i3 + 1])
+            p1 = increment(p1)
+
+    ############
+    # Search the optimum positions of the four pulses which maximize 'square(correlation) / energy'
+    ############
+
+    psk = -1
+    alpk = 1
+
+    ptr_rri0i3_i4 = rri0i3
+    ptr_rri1i3_i4 = rri1i3
+    ptr_rri2i3_i4 = rri2i3
+    ptr_rri3i3_i4 = rri3i3
+
+    trk = 0
+    for track in range(3, 5):
+        sq = -1
+        alp = 1
+
+        # i0 loop: 2 positions in track 2
+        prev_i0 = -1
+
+        for i in range(0, 2):
+            max = -1
+
+            # search "dn[]" maximum position in track 2
+            for j in range(2, ld8a.L_SUBFR, ld8a.STEP):
+                arg1 = basic_op.sub(dn[j], max)
+                arg2 = basic_op.sub(prev_i0, j)
+
+                if arg1 > 0 and arg2 != 0:
+                    max = dn[j]
+                    i0 = j
+            prev_i0 = i0
+
+            j = basic_op.mult(i0, 6554)
+            p0 = rri2i2 + j
+
+            ps1 = dn[i0]
+            alp1 = basic_op.L_mult(rr[p0], _1_4)
+
+            # i1 loop: 8 positions in track 2
+            p0 = ptr_rri2i3_i4 + basic_op.shl(j, 3)
+            p1 = ptr_rri3i3_i4
+
+            for i1 in range(track, ld8a.L_SUBFR, ld8a.STEP):
+                ps2 = basic_op.add(ps1, dn[i1])
+
+                alp2 = basic_op.L_mac(alp1, rr[p0], _1_2)
+                increment(p0)
+                alp2 = basic_op.L_mac(alp2, rr[p1], _1_4)
+                increment(p1)
+
+                sq2 = basic_op.mult(ps2, ps2)
+                alp_16 = basic_op.round(alp2)
+
+                s = basic_op.L_msu(basic_op.L_mult(alp, sq2), sq, alp_16)
+                if s > 0:
+                    sq = sq2
+                    ps = ps2
+                    alp = alp_16
+                    ix = i0
+                    iy = i1
+
+            i0 = ix
+            i1 = iy
+            i1_offset = basic_op.shl(basic_op.mult(i1, 6554), 3)
+
+            ############
+            # depth first search 3, phase B: track 0 and 1 (line 628)
+            ############
+
+            ps0 = ps
+            alp0 = basic_op.L_mult(alp, _1_4)
+
+            sq = -1
+            alp = -1
+
+            # build vector for next loop to decrease complexity
+            p0 = rri1i2 + basic_op.mult(i0, 6554)
+            p1 = ptr_rri1i3_i4 + basic_op.mult(i1, 6554)
+            p2 = rri1i1
+            p3 = tmp_vect
+
+            for i3 in range(1, ld8a.L_SUBFR, ld8a.STEP):
+                # rrv[i3] = rr[i3][i3] + rr[i0][i3] + rr[i1][i3]
+                s = basic_op.L_mult(rr[p0], _1_4)
+                p0 = p0 + ld8a.NB_POS
+                s = basic_op.L_mac(s, rr[p1], _1_4)
+                p1 = p1 + ld8a.NB_POS
+                s = basic_op.L_mac(s, rr[p2], _1_8)
+                p2 = increment(p2)
+                rr[p3] = basic_op.round(s)
+                p3 = increment(p3)
+
+            # i2 loop: 8 positions in track 0
+
+            p0 = rri0i2 + basic_op.mult(i0, 6554)
+            p1 = ptr_rri0i3_i4 + basic_op.mult(i1, 6554)
+            p2 = rri0i0
+            p3 = rri0i1
+
+            for i2 in range(0, ld8a.L_SUBFR, ld8a.STEP):
+                ps1 = basic_op.add(ps0, dn[i2])
+
+                # alp1 = alp0 + rr[i0][i2] + rr[i1][i2] + 1/2*rr[i2][i2]
+                alp1 = basic_op.L_mac(alp0, rr[p0], _1_8)       
+                p0 = p0 + ld8a.NB_POS
+                alp1 = basic_op.L_mac(alp1, rr[p1], _1_8)       
+                p1 = p1 + ld8a.NB_POS
+                alp1 = basic_op.L_mac(alp1, rr[p2], _1_16)
+                p2 = increment(p2)
+
+                # i3 loop: 8 positions in track 1
+
+                p4 = 0  # index to tmp_vect
+
+                for i3 in range(1, ld8a.L_SUBFR, ld8a.STEP):
+                    ps2 = basic_op.add(ps1, dn[i3])
+
+                    # alp1 = alp0 + rr[i0][i3] + rr[i1][i3] + rr[i2][i3] + 1/2*rr[i3][i3]
+                    alp2= basic_op.L_mac(alp1, rr[p3], _1_8)
+                    p3 = increment(p3)
+                    alp2 =basic_op.L_mac(alp2, tmp_vect[p4], _1_2)
+
+                    sq2 = basic_op.mult(ps2, ps2)
+                    alp_16 = basic_op.round(alp2)
+
+                    s = basic_op.L_msu(basic_op.L_mult(alp, sq2), sq, alp_16)
+
+                    if s > 0:
+                        sq = sq2
+                        alp = alp_16
+                        ix = i2
+                        i7 = i3
+            
+            ############
+            # depth first search 3: compare codevector with the best case. (line 696)
+            ############
+
+            s=  basic_op.L_msu( basic_op.L_mult(alpk, sq), psk, alp)
+
+            if s > 0:
+                psk = sq
+                alpk = slp
+                ip2 = i0
+                ip3 = i1
+                ip0 = ix
+                ip1 = iy
+            
+            ############
+            # depth first search 4, phase A: track 3 and 0. (line 711)
+            ############
+
+            sq = -1
+            alp = 1
+
+            # i0 loop: 2 positions in track 3/4
+
+            prev_i0 = -1
+
+            for i in range(0, 2):
+                max = -1
+
+                # search "dn[]" maximum position in track 3/4
+
+                for j in range(track, ld8a.L_SUBFR, ld81.STEP):
+                    arg1 = basic_op.sub(dn[j], max)
+                    arg2 = basic_op.sub(prev_i0, j)
+
+                    if arg1 > 0 and arg2 != 0:
+                        max = dn[j]
+                        i0 = j
+                
+                prev_i0 = i0
+
+                j = basic_op.mult(i0, 6554)  # j = i0/5
+                p0 = ptr_rri3i3_i4 + j
+
+                ps1 = dn[i0]
+                alp1 = basic_op.L_mult(rr[p0], _1_4)
+
+                # i1 loop: 8 positions in track 0
+
+                p0 = ptr_rri0i3_i4 + j
+                p1 = rri0i0
+
+                for i1 in range(0, ld8a.L_SUBFR, ld8a.STEP):
+                    ps2 = basic_op.add(ps1, dn[i1])
+
+                    # alp1 = alp0 + rr[i0][i1] + 1/2*rr[i1][i1] 
+                    alp2 = basic_op.L_mac(alp1, rr[p0], _1_2)
+                    p0 = p0 + ld8a.NB_POS
+                    alp2 = basic_op.L_mac(alp2, rr[p1], _1_4)
+                    p1 = increment(p1)
+
+                    sq2 = basic_op.mult(ps2, ps2)
+                    alp_16 = basic_op.round(alp2)
+
+                    s = basic_op.L_msu(basic_op.L_mult(alp, sq2), sq, alp_16)
+
+                    if s > 0:
+                        sq = sq2
+                        ps = ps2
+                        alp = alp_16
+                        ix = i0
+                        iy = i1
+            
+            i0 = ix
+            i1 = iy
+            i1_offset = basic_op.shl(basic_op..mult(i1, 6554), 3)
+            
+            ############
+            # depth first search 4, phase B: track 1 and 2. 
+            ############
+
+            #### CONTINUE
+
+        trk = increment(trk)
 
     return 1
