@@ -6,15 +6,15 @@ def Parity_Pitch(pitch_index: int) -> int:
 
     temp = basic_op.shr(pitch_index, 1)
 
-    sum = 1
+    result = 1
     for i in range(0, 6):
         temp = basic_op.shr(temp, 1)
         bit = temp & 1
-        sum = basic_op.add(sum, bit)
+        result = basic_op.add(result, bit)
     
-    sum = sum & 1
+    result = result & 1
 
-    return sum
+    return result
 
 def Check_Parity_Pitch(pitch_index: int, parity: int) -> int:
     #  output: 0 = no error, 1= error 
