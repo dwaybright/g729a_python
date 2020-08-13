@@ -749,7 +749,7 @@ def D4i40_17_fast(
         p3 = 0   # index for tmp_vect
 
         for i3 in range(2, ld8a.L_SUBFR, ld8a.STEP):
-            # rrv[i3] = rr[i3][i3] + rr[i0][i3] + rr[i1][i3] 
+            # rrv[i3] = rr[i3][i3] + rr[i0][i3] + rr[i1][i3]
             s = basic_op.L_mult(rr[p0], _1_4)
             p0 = p0 + ld8a.NB_POS
             s = basic_op.L_mac(s, rr[p1], _1_4)
@@ -864,7 +864,7 @@ def D4i40_17_fast(
         for i in range(ip2, ld8a.L_SUBFR):
             y[i] = basic_op.sub(y[i], h[j])
             j = j + 1
-    
+
     if i3 > 0:
         j = 0
         for i in range(ip3, ld8a.L_SUBFR):
@@ -886,14 +886,14 @@ def D4i40_17_fast(
         i = basic_op.add(i, 4)
     if i3 > 0:
         i = basic_op.add(i, 8)
-    #*sign = i
+    # *sign = i
 
-    ip0 = basic_op.mult(ip0, 6554)              # ip0/5 
-    ip1 = basic_op.mult(ip1, 6554)              # ip1/5 
-    ip2 = basic_op.mult(ip2, 6554)              # ip2/5 
-    i = basic_op.mult(ip3, 6554)                # ip3/5 
-    j = basic_op.add(i, basic_op.shl(i, 2))     # j = i*5 
-    j = basic_op.sub(ip3, basic_op.add(j, 3))   # j= ip3%5 -3 
+    ip0 = basic_op.mult(ip0, 6554)              # ip0/5
+    ip1 = basic_op.mult(ip1, 6554)              # ip1/5
+    ip2 = basic_op.mult(ip2, 6554)              # ip2/5
+    i = basic_op.mult(ip3, 6554)                # ip3/5
+    j = basic_op.add(i, basic_op.shl(i, 2))     # j = i*5
+    j = basic_op.sub(ip3, basic_op.add(j, 3))   # j= ip3%5 -3
     ip3 = basic_op.add(basic_op.shl(i, 1), j)
 
     i = basic_op.add(ip0, basic_op.shl(ip1, 3))
