@@ -21,7 +21,7 @@ def ACELP_Code_A(
     code: List[int],        # (o) Q13 :Innovative codebook
     y: List[int],           # (o) Q12 :Filtered innovative codebook
     sign: int               # (o)     :Signs of 4 pulses
-) -> None:
+) -> Tuple[int, int]:
     # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/ACELP_CA.C#L47
 
     Dn = [0] * ld8a.L_SUBFR
@@ -51,7 +51,7 @@ def ACELP_Code_A(
     # Find innovative codebook.
     #########################
 
-    index = D4i40_17_fast(Dn, rr, h, code, y, sign)
+    index, sign = D4i40_17_fast(Dn, rr, h, code, y, sign)
 
     #########################
     # Compute innovation vector gain.
@@ -62,7 +62,7 @@ def ACELP_Code_A(
         for i in range(0, ld8a.L_SUBFR):
             code[i] = basic_op.add(code[i], basic_op.mult(code[i-T0], sharp))
 
-    return index
+    return (index, sign)
 
 
 def Cor_h(H: List[int], rr: List[int]) -> None:
@@ -412,7 +412,7 @@ def D4i40_17_fast(
     cod: List[int],         # (o) Q13: Selected algebraic codeword.
     y: List[int],           # (o) Q12: Filtered algebraic codeword.
     sign: int               # (o): Signs of 4 pulses.
-) -> int:
+) -> Tuple[int,int]:
     # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/ACELP_CA.C#L425
 
     sign_dn = [0] * ld8a.L_SUBFR
@@ -900,4 +900,4 @@ def D4i40_17_fast(
     i = basic_op.add(i, basic_op.shl(ip2, 6))
     i = basic_op.add(i, basic_op.shl(ip3, 9))
 
-    return i
+    return i, sign
