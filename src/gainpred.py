@@ -6,12 +6,12 @@ import dsp_func
 
 from typing import List, Tuple
 
-def Gain_predict(past_qua_en: List[int], code: List[int], L_subfr: int, gcode0: int, exp_gcode0: int) -> Tuple[int, int]:
+def Gain_predict(past_qua_en: List[int], code: List[int], L_subfr: int) -> Tuple[int, int]:
     # (i) Q10 :Past quantized energies
     # (i) Q13 :Innovative vector.
     # (i)     :Subframe length.
-    # (o) Qxx :Predicted codebook gain
-    # (o)     :Q-Format(gcode0)
+    # (o) Qxx :Predicted codebook gain      - omitted param
+    # (o)     :Q-Format(gcode0)             - omitted param
 
     #Word16  i, exp, frac
     #Word32  L_tmp
