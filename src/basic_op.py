@@ -60,7 +60,7 @@ def sub(var1: int, var2: int) -> int:
     return sature(var1 - var2)
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L208
-def abs(var1: int) -> int:
+def abs_s(var1: int) -> int:
     if var1 >= 0:
         return var1
 
