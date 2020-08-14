@@ -3,7 +3,7 @@ import basic_op
 from typing import Tuple
 
 
-def L_Extract(L_32: int, hi: int, lo: int) -> Tuple[int, int]:
+def L_Extract(L_32: int) -> Tuple[int, int]:
     hi = basic_op.extract_h(L_32)
     lo = basic_op.extract_l(basic_op.L_msu(basic_op.L_shr(L_32, 1), hi, 16384))
 
