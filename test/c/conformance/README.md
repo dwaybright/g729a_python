@@ -17,7 +17,7 @@ As an example, to build the basic_ops_test.c:
 ## G729AnnexA Build info
 
 Built on Windows 10 using Cygwin
-
+```
 $ make -v
 GNU Make 4.3
 Built for x86_64-pc-cygwin
@@ -36,4 +36,4 @@ Thread model: posix
 gcc version 9.3.0 (GCC)
 
 $ make -f coder.mak
-
+```
