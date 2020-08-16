@@ -1,3 +1,5 @@
+import ctypes
+
 from typing import Tuple
 
 # Flags
@@ -97,7 +99,7 @@ def shr(var1: int, var2: int) -> int:
 def mult(var1: int, var2: int) -> int:
     return sature(var1 * var2)
 
-def L_sature(L_var1: int, useOverflow = False) -> Tuple[int, int]:
+def L_sature(L_var1: int, useOverflow = True) -> int:
     result = L_var1
 
     if L_var1 > MAX_INT_32:
@@ -123,11 +125,11 @@ def L_negate(L_var1: int) -> int:
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L527
 def extract_h(L_var1: int) -> int:
-    return sature(L_var1 >> 16)
+    return sature(L_var1 >> 16, useOverflow=False)
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L563
 def extract_l(L_var1: int) -> int:
-    return L_sature(L_var1) & 0x0000ffff
+    return ctypes.c_short(L_var1).value
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L603
 def round(L_var1: int) -> int:
@@ -166,7 +168,18 @@ def L_msuNs(L_var3: int, var1: int, var2: int) -> int:
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L846
 def L_add(L_var1, L_var2) -> int:
-    return L_sature(L_var1 + L_var2)
+    L_var_out = L_var1 + L_var2
+    
+    if (L_var1 ^ L_var2) & MIN_INT_32 == 0:
+        if (L_var_out ^ L_var1) & MIN_INT_32 != 0:
+            setOverflow(1)
+
+            if L_var1 < 0:
+                L_var_out = MIN_INT_32
+            else:
+                L_var_out = MAX_INT_32
+            
+    return L_var_out
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L895
 def L_sub(L_var1, L_var2) -> int:
@@ -176,11 +189,26 @@ def L_sub(L_var1, L_var2) -> int:
 def L_add_c(L_var1, L_var2) -> int:
     carry_int = 0
 
-    # Calc values
     L_var_out = L_var1 + L_var2 + getCarry()
     L_test = L_var1 + L_var2
 
-    # Set Overflow and Carry Flags
+    # Boundary cleanups
+    if L_var_out <= MIN_INT_32:
+        L_var_out = (-2 * MIN_INT_32) + L_var_out
+        L_test = (-2 * MIN_INT_32) + L_test
+
+        if L_var_out > MAX_INT_32:
+            L_var_out = MIN_INT_32
+    elif L_var_out > MAX_INT_32:
+        L_var_out = (2 * MIN_INT_32) + L_var_out
+    
+    
+    if L_test > MAX_INT_32:
+        L_test = MIN_INT_32
+    
+    # print(f"\t\tPython: L_var1: {L_var1}    L_var2: {L_var2}")
+    # print(f"\t\tPython: L_var_out: {L_var_out}    L_test: {L_test}")
+
     if L_var1 > 0 and L_var2 > 0 and L_test < 0:
         setOverflow(1)
         carry_int = 0
@@ -195,7 +223,7 @@ def L_add_c(L_var1, L_var2) -> int:
             else:
                 setOverflow(0)
                 carry_int = 0
-    
+
     if getCarry() != 0:
         if L_test == MAX_INT_32:
             setOverflow(1)
@@ -206,9 +234,8 @@ def L_add_c(L_var1, L_var2) -> int:
             else:
                 setCarry(carry_int)
     else:
-        setCarry(carry_int)
-    
-    # Return result
+        setCarry (carry_int)
+
     return L_var_out
 
 
@@ -260,7 +287,7 @@ def mult_r(var1: int, var2: int) -> int:
     if (result & 0x00010000) != 0:
         result = result | 0xffff0000
 
-    return sature(result, useOverflow=True)
+    return sature(result)
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L1233
 def L_shl(L_var1: int, var2: int) -> int:
