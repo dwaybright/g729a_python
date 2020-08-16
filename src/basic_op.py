@@ -168,7 +168,18 @@ def L_msuNs(L_var3: int, var1: int, var2: int) -> int:
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L846
 def L_add(L_var1, L_var2) -> int:
-    return L_sature(L_var1 + L_var2)
+    L_var_out = L_var1 + L_var2
+    
+    if (L_var1 ^ L_var2) & MIN_INT_32 == 0:
+        if (L_var_out ^ L_var1) & MIN_INT_32 != 0:
+            setOverflow(1)
+
+            if L_var1 < 0:
+                L_var_out = MIN_INT_32
+            else:
+                L_var_out = MAX_INT_32
+            
+    return L_var_out
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L895
 def L_sub(L_var1, L_var2) -> int:

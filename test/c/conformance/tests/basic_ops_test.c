@@ -33,6 +33,7 @@ int main(int argc, char *argv[] )
     test_extract_l();
     test_L_abs();
     test_L_add_c();
+    test_L_add();
 }
 
 void clearFlagsHelper() {
@@ -301,3 +302,38 @@ void test_L_add_c_Helper_Worker(Word32 L_var1, Word32 L_var2) {
     printf("\n");
 }
 
+void test_L_add() {
+    // Clear flags    
+    clearFlagsHelper();
+
+    test_L_add_Helper(MIN_32, MIN_32);
+    test_L_add_Helper(MIN_32, MIN_32 + (Word32)1);
+    test_L_add_Helper(MIN_32, (Word32)-1);
+    test_L_add_Helper(MIN_32, (Word32)0);
+    test_L_add_Helper(MIN_32, (Word32)1);
+    test_L_add_Helper((Word32)0, (Word32)-1);
+    test_L_add_Helper((Word32)0, (Word32)0);
+    test_L_add_Helper((Word32)0, (Word32)1);
+    test_L_add_Helper(MAX_32, (Word32)-1);
+    test_L_add_Helper(MAX_32, (Word32)0);
+    test_L_add_Helper(MAX_32, (Word32)1);
+    test_L_add_Helper(MAX_32, MAX_32 - (Word32)1);
+    test_L_add_Helper(MAX_32, MAX_32);
+
+    printLineBreak();
+}
+
+void test_L_add_Helper(Word32 var1, Word32 var2) {
+    Word32 result = L_add(var1, var2);
+
+    // Check Comp
+    printf("print(f\"{L_add(%d,%d) == %d} - L_add(%d,%d) = %d\")", var1, var2, result, var1, var2, result);
+    printf("\n"); 
+
+    // Check Flags
+    printf("print(f\"{getOverflow() == %d} - Overflow = %d\")", Overflow, Overflow);
+    printf("\n");
+
+    // Clear flags    
+    clearFlagsHelper();
+}
