@@ -10,6 +10,51 @@ Word32 MAX_30 = (Word32) 0x3fffffffL;
 extern Flag Overflow;
 extern Flag Carry;
 
+#define LENGTH_WORD16_TEST_NUMBERS 13
+Word16 stdWord16_TestNumbers[LENGTH_WORD16_TEST_NUMBERS] = {
+    MIN_16 - (Word16)1,
+    MIN_16,
+    MIN_16 + (Word16)1,
+    (MIN_16 / 2) - (Word16) 123,
+    (MIN_16 / 2) + (Word16) 123,
+    (Word16)-1,
+    (Word16)0,
+    (Word16)1,
+    (MAX_16 / 2) - (Word16) 123,
+    (MAX_16 / 2) + (Word16) 123,
+    MAX_16 - (Word16)1,
+    MAX_16,
+    MAX_16 + (Word16)1,
+};
+
+#define LENGTH_WORD32_TEST_NUMBERS 23
+Word32 stdWord32_TestNumbers[LENGTH_WORD32_TEST_NUMBERS] = {
+    MIN_32 - (Word32)1,
+    MIN_32,
+    MIN_32 + (Word32)1,
+    (MIN_32 / 2) - (Word32) 123,
+    (MIN_32 / 2) + (Word32) 123,
+    ((Word32)MIN_16) - (Word32)1,
+    (Word32)MIN_16,
+    ((Word32)MIN_16) + (Word32)1,
+    ((Word32)(MIN_16 / 2)) - (Word32) 123,
+    ((Word32)(MIN_16 / 2)) + (Word32) 123,
+    (Word16)-1,
+    (Word16)0,
+    (Word16)1,
+    ((Word32)(MAX_16 / 2)) - (Word32) 123,
+    ((Word32)(MAX_16 / 2)) + (Word32) 123,
+    ((Word32)MAX_16) - (Word32)1,
+    (Word32)MAX_16,
+    ((Word32)MAX_16) + (Word32)1,
+    (MAX_32 / 2) - (Word32) 123,
+    (MAX_32 / 2) + (Word32) 123,
+    MAX_32 - (Word32)1,
+    MAX_32,
+    MAX_32 + (Word32)1
+};
+
+
 int main(int argc, char *argv[] )
 {
     // Need to append path to python src
@@ -34,6 +79,8 @@ int main(int argc, char *argv[] )
     test_L_abs();
     test_L_add_c();
     test_L_add();
+    test_L_deposit_h();
+    test_L_deposit_l();
 }
 
 void clearFlagsHelper() {
@@ -79,11 +126,10 @@ void testConstants() {
 }
 
 void test_abs_s() {
-    test_abs_s_Helper(MIN_16);
-    test_abs_s_Helper((Word16)-1);
-    test_abs_s_Helper((Word16)0);
-    test_abs_s_Helper((Word16)1);
-    test_abs_s_Helper(MAX_16);
+
+    for (int i=0; i<LENGTH_WORD16_TEST_NUMBERS; i++) {
+        test_abs_s_Helper(stdWord16_TestNumbers[i]);
+    }
 
     printLineBreak(); 
 }
@@ -96,15 +142,14 @@ void test_abs_s_Helper(Word16 var) {
 }
 
 void test_add() {
-    test_add_Helper(MIN_16, (Word16)-1);
-    test_add_Helper(MIN_16, (Word16)0);
-    test_add_Helper(MIN_16, (Word16)1);
-    test_add_Helper((Word16)0, (Word16)-1);
-    test_add_Helper((Word16)0, (Word16)0);
-    test_add_Helper((Word16)0, (Word16)1);
-    test_add_Helper(MAX_16, (Word16)-1);
-    test_add_Helper(MAX_16, (Word16)0);
-    test_add_Helper(MAX_16, (Word16)1);
+    for (int i=0; i<LENGTH_WORD16_TEST_NUMBERS; i++) {
+        for (int j=0; j<LENGTH_WORD16_TEST_NUMBERS; j++) {
+            test_add_Helper(
+                stdWord16_TestNumbers[i], 
+                stdWord16_TestNumbers[j]
+            );
+        }
+    }
 
     printLineBreak(); 
 }
@@ -134,16 +179,10 @@ void test_div_s_Helper(Word16 var1, Word16 var2) {
 }
 
 void test_extract_h() {
-    test_extract_h_Helper(MIN_32);
-    test_extract_h_Helper((Word32)(MIN_16 - (Word32)1));
-    test_extract_h_Helper(MIN_16);
-    test_extract_h_Helper(MIN_16 + (Word16)1);
-    test_extract_h_Helper((Word16)-1);
-    test_extract_h_Helper((Word16)0);
-    test_extract_h_Helper((Word16)1);
-    test_extract_h_Helper(MAX_16);
-    test_extract_h_Helper((Word32)(MAX_16 + (Word32)1));
-    test_extract_h_Helper(MAX_32);
+
+    for (int i=0; i<LENGTH_WORD32_TEST_NUMBERS; i++) {
+        test_extract_h_Helper(stdWord32_TestNumbers[i]);
+    }
 
     printLineBreak(); 
 }
@@ -156,16 +195,9 @@ void test_extract_h_Helper(Word32 var) {
 }
 
 void test_extract_l() {
-    test_extract_l_Helper(MIN_32);
-    test_extract_l_Helper((Word32)(MIN_16 - (Word32)1));
-    test_extract_l_Helper(MIN_16);
-    test_extract_l_Helper(MIN_16 + (Word16)1);
-    test_extract_l_Helper((Word16)-1);
-    test_extract_l_Helper((Word16)0);
-    test_extract_l_Helper((Word16)1);
-    test_extract_l_Helper(MAX_16);
-    test_extract_l_Helper((Word32)(MAX_16 + (Word32)1));
-    test_extract_l_Helper(MAX_32);
+    for (int i=0; i<LENGTH_WORD32_TEST_NUMBERS; i++) {
+        test_extract_l_Helper(stdWord32_TestNumbers[i]);
+    }
 
     printLineBreak(); 
 }
@@ -178,11 +210,9 @@ void test_extract_l_Helper(Word32 var) {
 }
 
 void test_L_abs() {
-    test_extract_l_Helper(MIN_32);
-    test_extract_l_Helper((Word32)-1);
-    test_extract_l_Helper((Word32)0);
-    test_extract_l_Helper((Word32)1);
-    test_extract_l_Helper(MAX_32);
+    for (int i=0; i<LENGTH_WORD32_TEST_NUMBERS; i++) {
+        test_L_abs_Helper(stdWord32_TestNumbers[i]);
+    }
 
     printLineBreak(); 
 }
@@ -199,21 +229,14 @@ void test_L_add_c() {
     clearFlagsHelper();
 
     // Test
-    test_L_add_c_Helper(MIN_32, MIN_32);
-    test_L_add_c_Helper(MIN_32, (Word32)-10123);
-    test_L_add_c_Helper(MIN_32, (Word32)-1);
-    test_L_add_c_Helper(MIN_32 - 1, (Word32)1);
-    test_L_add_c_Helper(MIN_32 + 1, (Word32)-1);
-
-    test_L_add_c_Helper(-1, 0);
-    test_L_add_c_Helper(0, 0);
-    test_L_add_c_Helper(0, 1);
-    
-    test_L_add_c_Helper(MAX_32 - 1, (Word32)1);
-    test_L_add_c_Helper(MAX_32 + 1, (Word32)-1);
-    test_L_add_c_Helper(MAX_32, (Word32)1);
-    test_L_add_c_Helper(MAX_32, (Word32)10123);
-    test_L_add_c_Helper(MAX_32, MAX_32);
+    for (int i=0; i<LENGTH_WORD32_TEST_NUMBERS; i++) {
+        for (int j=0; j<LENGTH_WORD32_TEST_NUMBERS; j++) {
+            test_L_add_c_Helper(
+                stdWord32_TestNumbers[i], 
+                stdWord32_TestNumbers[j]
+            );
+        }
+    }
 
     printLineBreak(); 
 }
@@ -306,19 +329,14 @@ void test_L_add() {
     // Clear flags    
     clearFlagsHelper();
 
-    test_L_add_Helper(MIN_32, MIN_32);
-    test_L_add_Helper(MIN_32, MIN_32 + (Word32)1);
-    test_L_add_Helper(MIN_32, (Word32)-1);
-    test_L_add_Helper(MIN_32, (Word32)0);
-    test_L_add_Helper(MIN_32, (Word32)1);
-    test_L_add_Helper((Word32)0, (Word32)-1);
-    test_L_add_Helper((Word32)0, (Word32)0);
-    test_L_add_Helper((Word32)0, (Word32)1);
-    test_L_add_Helper(MAX_32, (Word32)-1);
-    test_L_add_Helper(MAX_32, (Word32)0);
-    test_L_add_Helper(MAX_32, (Word32)1);
-    test_L_add_Helper(MAX_32, MAX_32 - (Word32)1);
-    test_L_add_Helper(MAX_32, MAX_32);
+    for (int i=0; i<LENGTH_WORD32_TEST_NUMBERS; i++) {
+        for (int j=0; j<LENGTH_WORD32_TEST_NUMBERS; j++) {
+            test_L_add_Helper(
+                stdWord32_TestNumbers[i], 
+                stdWord32_TestNumbers[j]
+            );
+        }
+    }
 
     printLineBreak();
 }
@@ -336,4 +354,34 @@ void test_L_add_Helper(Word32 var1, Word32 var2) {
 
     // Clear flags    
     clearFlagsHelper();
+}
+
+void test_L_deposit_h() {
+    for (int i=0; i<LENGTH_WORD16_TEST_NUMBERS; i++) {
+        test_L_deposit_h_Helper(stdWord16_TestNumbers[i]);
+    }
+
+    printLineBreak();
+}
+
+void test_L_deposit_h_Helper(Word16 var) {
+    Word32 result = L_deposit_h(var);
+
+    printf("print(f\"{L_deposit_h(%d) == %d} - L_deposit_h(%d) = %d\")", var, result, var, result);
+    printf("\n");
+}
+
+void test_L_deposit_l() {
+    for (int i=0; i<LENGTH_WORD16_TEST_NUMBERS; i++) {
+        test_L_deposit_l_Helper(stdWord16_TestNumbers[i]);
+    }
+
+    printLineBreak();
+}
+
+void test_L_deposit_l_Helper(Word16 var) {
+    Word32 result = L_deposit_l(var);
+
+    printf("print(f\"{L_deposit_l(%d) == %d} - L_deposit_l(%d) = %d\")", var, result, var, result);
+    printf("\n");
 }
