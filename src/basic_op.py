@@ -33,7 +33,7 @@ def setCarry(value: int) -> None:
     CARRY = value
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L69
-def sature(L_var1: int, useOverflow = False) -> int:
+def sature(L_var1: int, useOverflow = True) -> int:
     result = L_var1
 
     if L_var1 > MAX_INT_16:
@@ -51,7 +51,10 @@ def sature(L_var1: int, useOverflow = False) -> int:
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L490
 def negate(var1: int) -> int:
-    return sature(-1 * var1)
+    if var1 == MIN_INT_16:
+        return MAX_INT_16
+    
+    return (-1) * var1
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L126
 def add(var1: int, var2: int) -> int:
@@ -97,7 +100,19 @@ def shr(var1: int, var2: int) -> int:
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L390
 def mult(var1: int, var2: int) -> int:
-    return sature(var1 * var2)
+    product = var1 * var2
+    #print(f"\t\tvar1: {var1}  var2: {var2}  product_1: {product}")
+
+    product = (product & -32768) >> 15
+    #print(f"\t\tvar1: {var1}  var2: {var2}  product_2: {product}")
+
+    if (product & 65536):
+        product = product | -65536
+    #print(f"\t\tvar1: {var1}  var2: {var2}  product_3: {product}")
+
+    var_out = sature(product)
+    return var_out
+
 
 def L_sature(L_var1: int, useOverflow = True) -> int:
     result = L_var1
@@ -117,7 +132,15 @@ def L_sature(L_var1: int, useOverflow = True) -> int:
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L442
 def L_mult(var1: int, var2: int) -> int:
-    return L_sature(var1 * var2)
+    L_var_out = var1 * var2
+    
+    if L_var_out != 1073741824:
+        L_var_out = L_var_out * 2
+    else:
+        setOverflow(1)
+        L_var_out = MAX_INT_32
+
+    return L_var_out
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L1138
 def L_negate(L_var1: int) -> int:
@@ -133,7 +156,7 @@ def extract_l(L_var1: int) -> int:
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L603
 def round(L_var1: int) -> int:
-    L_arrondi = L_add(L_var1, MIN_INT_16)
+    L_arrondi = L_add(L_var1, 32768)
 
     return extract_h(L_arrondi)
 
@@ -142,7 +165,7 @@ def L_mac(L_var3: int, var1: int, var2: int) -> int:
     product = L_mult(var1, var2)
     result = L_add(L_var3, product)
 
-    result, overflow = L_sature(result)
+    result = L_sature(result)
     return result
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L699
@@ -243,14 +266,14 @@ def L_add_c(L_var1, L_var2) -> int:
 def L_sub_c(L_var1, L_var2) -> Tuple[int, int, int]:
     carry_int = 0
 
-    if getCarry() != 0:
+    if getCarry() > 0:
         setCarry(0)
 
         if L_var2 != MIN_INT_32:
-            L_var_out = L_add_c(L_var1, -1 * L_var2)
+            L_var_out = L_add_c(L_var1, -L_var2)
         else:
             L_var_out = L_var1 - L_var2
-            
+
             if L_var1 > 0:
                 setOverflow(1)
                 setCarry(0)
@@ -258,34 +281,35 @@ def L_sub_c(L_var1, L_var2) -> Tuple[int, int, int]:
         L_var_out = L_var1 - L_var2 - 1
         L_test = L_var1 - L_var2
 
-        if L_test < 0 and L_var1 > 0 and L_var2 < 0:
+        if (L_test < 0) and (L_var1 > 0) and (L_var2 < 0):
             setOverflow(1)
             carry_int = 0
-        elif L_test > 0:
-            if L_var1 < 0 and L_var2 > 0:
-                setOverflow(1)
-                carry_int = 1
-            elif (L_var1 ^ L_var2) > 0:
-                setOverflow(0)
-                carry_int = 1
-        
+        elif (L_test > 0) and (L_var1 < 0) and (L_var2 > 0):
+            setOverflow(1)
+            carry_int = 1
+        elif (L_test > 0) and ((L_var1 ^ L_var2) > 0):
+            setOverflow(0)
+            carry_int = 1
+
         if L_test == MIN_INT_32:
             setOverflow(1)
-        
-        setCarry(carry_int)
-    
+            setCarry(carry_int)
+        else:
+            setCarry(carry_int)
+
     return L_var_out
+
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L1180
 def mult_r(var1: int, var2: int) -> int:
     result = var1 * var2            # product
-    result = result + MAX_INT_14     # round
-    result = result & 0xffff8000    # mask
+    result = result + MAX_INT_14    # round
+    result = result & -32768        # mask
     result = result >> 15           # shifted
 
     # sign extend when necessary
-    if (result & 0x00010000) != 0:
-        result = result | 0xffff0000
+    if (result & 65536) != 0:
+        result = result | -65536
 
     return sature(result)
 
@@ -294,7 +318,8 @@ def L_shl(L_var1: int, var2: int) -> int:
     if var2 <= 0:
         return L_shr(L_var1, -1 * var2)
     
-    for step in range(0, var2):
+    # for step in range(0, var2):
+    while var2 > 0:
         if L_var1 > MAX_INT_30:
             setOverflow(1)
             return MAX_INT_32
@@ -304,6 +329,8 @@ def L_shl(L_var1: int, var2: int) -> int:
         
         L_var1 = L_var1 * 2
         result = L_var1
+
+        var2 = var2 - 1
     
     return result
 
@@ -326,7 +353,7 @@ def L_shr(L_var1: int, var2: int) -> int:
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L1433
 def mac_r(L_var3: int, var1: int, var2: int) -> int:
     result = L_mac(L_var3, var1, var2)
-    result = L_add(result, MIN_INT_16)
+    result = L_add(result, 32768)
     result = extract_h(result)
 
     return result
@@ -334,7 +361,7 @@ def mac_r(L_var3: int, var1: int, var2: int) -> int:
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L1483
 def msu_r(L_var3: int, var1: int, var2: int) -> int:
     result = L_msu(L_var3, var1, var2)
-    result = L_add(result, MIN_INT_16)
+    result = L_add(result, 32768)
     result = extract_h(result)
 
     return result
@@ -360,6 +387,21 @@ def L_shr_r(L_var1: int, var2: int) -> int:
             result = result + 1
     
     return result
+
+
+def shr_r(var1: int, var2: int) -> int:
+
+    if var2 > 15:
+        var_out = 0
+    else:
+        var_out = shr(var1, var2)
+
+        if var2 > 0:
+            if ((var1 & (1 << (var2 - 1))) != 0):
+                var_out = var_out + 1
+
+    return var_out
+
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L1657
 def L_abs(L_var1: int) -> int:
@@ -437,8 +479,7 @@ def div_s(var1: int, var2: int) -> int:
 def norm_l(L_var1: int) -> int:
     if L_var1 == 0:
         return 0
-
-    if L_var1 == -1:
+    elif L_var1 == -1:
         return 31
     
     result = 0
@@ -446,7 +487,7 @@ def norm_l(L_var1: int) -> int:
     if test < 0:
         test = ~test
     
-    while test < MAX_INT_14:
+    while test < 1073741824:
         test = test << 1
         result = result + 1
     
