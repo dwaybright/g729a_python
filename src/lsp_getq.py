@@ -10,6 +10,7 @@ def Lsp_get_quant(
     lspcb1: List[List[int]], lspcb2: List[List[int]], code0, code1, code2, 
     fg: List[List[int]], freq_prev: List[List[int]], lspq: List[int], fg_sum: List[int]
 ) -> None:
+    """
     # (i) Q13 : first stage LSP codebook
     # (i) Q13 : Second stage LSP codebook
     # (i)     : selected code of first stage
@@ -19,6 +20,7 @@ def Lsp_get_quant(
     # (i) Q13 : previous LSP vector
     # (o) Q13 : quantized LSP parameters
     # (i) Q15 : present MA prediction coef.
+    """
 
     buf = [0] * M           # Q13
 
@@ -39,8 +41,10 @@ def Lsp_get_quant(
 
 
 def Lsp_expand_1(buf: List[int], gap) -> None:
+    """
     # (i/o) Q13 : LSP vectors
     # (i)   Q13 : gap
+    """
 
     for j in range(1, NC):
         diff = sub( buf[j-1], buf[j] )
@@ -52,8 +56,10 @@ def Lsp_expand_1(buf: List[int], gap) -> None:
 
 
 def Lsp_expand_2(buf: List[int], gap) -> None:
+    """
     # (i/o) Q13 : LSP vectors
     # (i)   Q13 : gap
+    """
 
     for j in range(NC, M):
         diff = sub(buf[j - 1], buf[j])
@@ -65,8 +71,10 @@ def Lsp_expand_2(buf: List[int], gap) -> None:
 
 
 def Lsp_expand_1_2(buf: List[int], gap) -> None:
+    """
     # (i/o) Q13 : LSP vectors
     # (i)   Q13 : gap
+    """
 
     for j in range(1, M):
         diff = sub(buf[j - 1], buf[j])
@@ -80,11 +88,13 @@ def Lsp_prev_compose(
     lsp_ele: List[int], lsp: List[int], fg: List[List[int]], 
     freq_prev: List[List[int]], fg_sum: List[int]
 ) -> None:
+    """
     # (i) Q13 : LSP vectors
     # (o) Q13 : quantized LSP parameters
     # (i) Q15 : MA prediction coef.
     # (i) Q13 : previous LSP vector
     # (i) Q15 : present MA prediction coef.
+    """
 
     for j in range(0, M):
         L_acc = L_mult(lsp_ele[j], fg_sum[j])
@@ -98,11 +108,13 @@ def Lsp_prev_extract(
     lsp: List[int], lsp_ele: List[int], fg: List[List[int]], 
     freq_prev: List[List[int]], fg_sum_inv: List[int]
 ) -> None:
+    """
     # (i) Q13 : unquantized LSP parameters
     # (o) Q13 : target vector
     # (i) Q15 : MA prediction coef.
     # (i) Q13 : previous LSP vector
     # (i) Q12 : inverse previous LSP vector
+    """
 
     for j in range(0, M):
         L_temp = L_deposit_h(lsp[j])
@@ -115,8 +127,10 @@ def Lsp_prev_extract(
         lsp_ele[j] = extract_h(L_shl(L_temp, 3))
 
 def Lsp_prev_update(lsp_ele: List[int], freq_prev: List[List[int]]) -> None:
+    """
     # (i)   Q13 : LSP vectors
     # (i/o) Q13 : previous LSP vectors
+    """
 
     for k in range(MA_NP - 1, 0, -1):
         Copy(freq_prev[k - 1], freq_prev[k])
@@ -124,7 +138,9 @@ def Lsp_prev_update(lsp_ele: List[int], freq_prev: List[List[int]]) -> None:
     Copy(lsp_ele, freq_prev[0])
 
 def Lsp_stability(buf: List[int]) -> None:
+    """
     # (i/o) Q13 : quantized LSP parameters
+    """
 
     for j in range(0, M - 1):
         L_acc = L_deposit_l(buf[j + 1])

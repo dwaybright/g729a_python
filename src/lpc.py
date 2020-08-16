@@ -10,10 +10,12 @@ old_rc = [0, 0]
 
 
 def Autocorr(x: List[int], m: int, r_h: List[int], r_l: List[int]) -> None:
+    """
     # (i)    : Input signal
     # (i)    : LPC order
     # (o)    : Autocorrelations  (msb)
     # (o)    : Autocorrelations  (lsb)
+    """
 
     y = [0] * ld8a.L_WINDOW
 
@@ -57,9 +59,11 @@ def Autocorr(x: List[int], m: int, r_h: List[int], r_l: List[int]) -> None:
 
 
 def Lag_window(m: int, r_h: List[int], r_l: List[int]) -> None:
+    """
     # (i)     : LPC order
     # (i/o)   : Autocorrelations  (msb)
     # (i/o)   : Autocorrelations  (lsb)
+    """
 
     for i in range(i, m + 1):
         x = oper_32b.Mpy_32(r_h[i], r_l[i], tab_ld8a.lag_h[i - 1], tab_ld8a.lag_l[i - 1])
@@ -67,10 +71,12 @@ def Lag_window(m: int, r_h: List[int], r_l: List[int]) -> None:
 
 
 def Levinson(Rh: List[int], Rl: List[int], A: List[int], rc: List[int]) -> None:
+    """
     # (i)     : Rh[M+1] Vector of autocorrelations (msb)
     # (i)     : Rl[M+1] Vector of autocorrelations (lsb)
     # (o) Q12 : A[M]    LPC coefficients  (m = 10)
     # (o) Q15 : rc[M]   Reflection coefficients.
+    """
 
     # LPC coef. in double prec. 
     Ah = [0] * (M + 1)
@@ -194,9 +200,11 @@ def Levinson(Rh: List[int], Rl: List[int], A: List[int], rc: List[int]) -> None:
 
 
 def Az_lsp(a: List[int], lsp: List[int], old_lsp: List[int]) -> None:
+    """
     # (i) Q12 : predictor coefficients
     # (o) Q15 : line spectral pairs
     # (i)     : old lsp[] (in case not found 10 roots)
+    """
 
     #Word16 i, j, nf, ip
     #Word16 xlow, ylow, xhigh, yhigh, xmid, ymid, xint
