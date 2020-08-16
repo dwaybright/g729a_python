@@ -9,10 +9,10 @@ The idea for the tests is to build out a python file as output, that then runs t
 ## Build a Test
 
 To build a test, you need to link to required objects.  Basic form is:
-    ```gcc -O2 -Wall <test.c> <../path/to/first_component.o> ... <../path/to/last_component.o> -I <../path/to/header/files> -o executable```
+* ```gcc -O2 -Wall <test.c> <../path/to/first_component.o> ... <../path/to/last_component.o> -I <../path/to/header/files> -o executable```
 
 As an example, to build the basic_ops_test.c:
-    ```gcc -O2 -Wall basic_ops_test.c ../g729a_build/basic_op.o -I ../../../../resources/g729AnnexA/c_code -o test_basic_ops```
+* ```gcc -O2 -Wall basic_ops_test.c ../g729a_build/basic_op.o -I ../../../../resources/g729AnnexA/c_code -o test_basic_ops```
 
 ## G729AnnexA Build info
 
