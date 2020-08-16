@@ -14,6 +14,7 @@ def Qua_gain(
     code: List[int], g_coeff: List[int], exp_coeff: List[int],
     L_subfr: int, gain_pit: int, gain_cod: int, tameflag: int
 ) -> Tuple[int, int, int]:
+    """
     # (i) Q13 :Innovative vector.
     # (i)     :Correlations <xn y1> -2<y1 y1>
     #            <y2,y2>, -2<xn,y2>, 2<y1,y2>
@@ -22,6 +23,7 @@ def Qua_gain(
     # (o) Q14 :Pitch gain.
     # (o) Q1  :Code gain.
     # (i)     : set to 1 if taming is needed
+    """
 
     # Word16 i, j, index1, index2
     # Word16 cand1, cand2
@@ -312,10 +314,12 @@ def Qua_gain(
 
 
 def Gbk_presel(best_gain: List[int], cand1: int, cand2: int,  gcode0: int) -> Tuple[int, int]:
+    """
     # (i) [0] Q9 : unquantized pitch gain
     # (i) [1] Q2 : unquantized code gain
     # (o)    : index of best 1st stage vector
     # (o)    : index of best 2nd stage vector
     # (i) Q4 : presearch for gain codebook
+    """
 
     return (cand1, cand2)

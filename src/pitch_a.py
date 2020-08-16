@@ -8,11 +8,13 @@ from typing import List, Tuple
 
 
 def Pitch_ol_fast(signal: List[int], pit_max: int, L_frame: int) -> int:
+    """
     # output: open loop pitch lag
     # input : signal used to compute the open loop pitch
     # signal[-pit_max] to signal[-1] should be known
     # input : maximum pitch lag
     # input : length of frame to compute pitch
+    """
 
     # Scaled signal
 
@@ -270,10 +272,12 @@ def Pitch_ol_fast(signal: List[int], pit_max: int, L_frame: int) -> int:
 
 
 def Dot_Product(x: List[int], y: List[int], lg: int) -> int:
+    """
     # (o)   :Result of scalar product.
     # (i)   :First vector.
     # (i)   :Second vector.
     # (i)   :Number of point.
+    """
 
     sum = 0
 
@@ -287,6 +291,7 @@ def Pitch_fr3_fast(
     exc: List[int], excIndex: int, xn: List[int], h: List[int], L_subfr: int, 
     t0_min: int, t0_max: int, i_subfr: int, pit_frac: List[int]
 ) -> Tuple[int, int]:
+    """
     # (o)     : pitch period.
     # (i)     : excitation buffer
     # (i)     : target vector
@@ -296,6 +301,7 @@ def Pitch_fr3_fast(
     # (i)     : maximum value in the searched range.
     # (i)     : indicator for first subframe.
     # (o)     : chosen fraction.
+    """
 
     Dn = [0] * L_SUBFR
     exc_tmp = [0] * L_SUBFR
@@ -368,11 +374,13 @@ def Pitch_fr3_fast(
 
 
 def G_pitch(xn: List[int], y1: List[int], g_coeff: List[int], L_subfr:int):
+    """
     # (o) Q14 : Gain of pitch lag saturated to 1.2
     # (i)     : Pitch target.
     # (i)     : Filtered adaptive codebook.
     # (i)     : Correlations need for gain quantization.
     # (i)     : Length of subframe.
+    """
 
     scaled_y1 = [0] * L_SUBFR
 
@@ -449,6 +457,7 @@ def G_pitch(xn: List[int], y1: List[int], g_coeff: List[int], L_subfr:int):
 
 
 def Enc_lag3(T0, T0_frac, T0_min, T0_max, pit_min, pit_max, pit_flag) -> Tuple[int, int, int]:
+    """
     # output: Return index of encoding
     # input : Pitch delay
     # input : Fractional pitch delay
@@ -457,6 +466,7 @@ def Enc_lag3(T0, T0_frac, T0_min, T0_max, pit_min, pit_max, pit_flag) -> Tuple[i
     # input : Minimum pitch delay
     # input : Maximum pitch delay
     # input : Flag for 1st subframe
+    """
 
     if pit_flag == 0:           # if 1st subframe 
         # encode pitch delay (with fraction) 

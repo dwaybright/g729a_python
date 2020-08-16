@@ -5,16 +5,23 @@ import util
 
 from typing import List
 
-# static memory
+## static memory
+
+# Q13:previous LSP vector
 freq_prev = []  #[MA_NP][M]
 for i in range(ld8a.MA_NP):
     freq_prev.append([0] * ld8a.M)
 
-freq_prev_reset = [2339, 4679, 7018, 9358, 11698, 14037, 16377, 18717, 21056, 23396]
+# Q13:previous LSP vector(init)
+freq_prev_reset = [2339, 4679, 7018, 9358, 11698, 14037, 16377, 18717, 21056, 23396]  # PI*(float)(j+1)/(float)(M+1)
 
 
 def Qua_lsp(lsp: List[int], lsp_q: List[int], ana: List[int]) -> None:
-    # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/QUA_LSP.C#L21
+    """
+    (i) Q15 : Unquantized LSP
+    (o) Q15 : Quantized LSP
+    (o)     : indexes
+    """
 
     lsf = [0] * ld8a.M
     lsf_q = [0] * ld8a.M
@@ -29,8 +36,6 @@ def Qua_lsp(lsp: List[int], lsp_q: List[int], ana: List[int]) -> None:
 
 
 def Lsp_encw_reset() -> None:
-    # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/QUA_LSP.C#L48
-
     for i in range(0, ld8a.MA_NP):
         util.Copy(freq_prev_reset, freq_prev[i])
 

@@ -7,11 +7,13 @@ import dsp_func
 from typing import List, Tuple
 
 def Gain_predict(past_qua_en: List[int], code: List[int], L_subfr: int) -> Tuple[int, int]:
+    """
     # (i) Q10 :Past quantized energies
     # (i) Q13 :Innovative vector.
     # (i)     :Subframe length.
     # (o) Qxx :Predicted codebook gain      - omitted param
     # (o)     :Q-Format(gcode0)             - omitted param
+    """
 
     #Word16  i, exp, frac
     #Word32  L_tmp
@@ -72,8 +74,10 @@ def Gain_predict(past_qua_en: List[int], code: List[int], L_subfr: int) -> Tuple
 
 
 def Gain_update(past_qua_en: List[int], L_gbk12: int) -> None:
+    """
     # (io) Q10 :Past quantized energies
     # (i) Q13 : gbk1[indice1][1]+gbk2[indice2][1]
+    """
 
     for i in range(3, 0, -1):
         past_qua_en[i] = past_qua_en[i-1]         # Q10

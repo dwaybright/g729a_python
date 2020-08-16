@@ -1,14 +1,16 @@
-from basic_op import add, sub, mult, L_add, L_sub, shr, L_shr, L_shr_r, round, shl, L_shl, extract_l, L_mult, L_msu
-from oper_32b import L_Extract, Mpy_32_16
-from tab_ld8a import table, slope, slope_cos, slope_acos
-from ld8a import M, MP1
+from basic_op import *
+from oper_32b import *
+from ld8a import *
+from tab_ld8a import *
 
 from typing import List
 
 
 def Lsp_Az(lsp: List[int], a: List[int], aOffset: int) -> None:
+    """
     # (i) Q15 : line spectral frequencies
     # (o) Q12 : predictor coefficients (order = 10)
+    """
 
     f1 = [0] * 6
     f2 = [0] * 6
@@ -24,15 +26,21 @@ def Lsp_Az(lsp: List[int], a: List[int], aOffset: int) -> None:
     j = 10
     for i in range(1, 6):
         t0 = L_add(f1[i], f2[i])                        # f1[i] + f2[i]
-        a[i] = extract_l(L_shr_r(t0, 13))               # from Q24 to Q12 and * 0.5
+        # from Q24 to Q12 and * 0.5
+        a[i] = extract_l(L_shr_r(t0, 13))
 
         t0 = L_sub(f1[i], f2[i])                        # f1[i] - f2[i]
-        a[j + aOffset] = extract_l(L_shr_r(t0, 13))     # from Q24 to Q12 and * 0.5
+        # from Q24 to Q12 and * 0.5
+        a[j + aOffset] = extract_l(L_shr_r(t0, 13))
 
         j = j - 1
 
 
 def Get_lsp_pol(lsp: List[int], lspIndexOffset: int, f: List[int]) -> None:
+    """
+    lsp[]   : line spectral freq. (cosine domain)    in Q15
+    f[]     : the coefficients of F1 or F2           in Q24
+    """
 
     lspIndex = 0 + lspIndexOffset
     fIndex = 0
@@ -60,97 +68,148 @@ def Get_lsp_pol(lsp: List[int], lspIndexOffset: int, f: List[int]) -> None:
 
         f[fIndex] = L_msu(f[fIndex], lsp[lspIndex], 512)   # *f -= lsp<<9
         fIndex = fIndex + i                                         # Advance f pointer
-        lspIndex = lspIndex + 2                                     # Advance lsp pointer
+        # Advance lsp pointer
+        lspIndex = lspIndex + 2
 
 
 def Lsf_lsp(lsf: List[int], lsp: List[int], m: int) -> None:
+    """
     # (i) Q15 : lsf[m] normalized (range: 0.0<=val<=0.5)
     # (o) Q15 : lsp[m] (range: -1<=val<1)
     # (i)     : LPC order
+    """
 
     for i in range(0, m):
-        ind = shr(lsf[i], 8)       # ind    = b8-b15 of lsf[i] 
-        offset = lsf[i] & 0x00ff            # offset = b0-b7  of lsf[i] 
+        ind = shr(lsf[i], 8)       # ind    = b8-b15 of lsf[i]
+        offset = lsf[i] & 0x00ff            # offset = b0-b7  of lsf[i]
 
-        # lsp[i] = table[ind]+ ((table[ind+1]-table[ind])*offset) / 256 
+        # lsp[i] = table[ind]+ ((table[ind+1]-table[ind])*offset) / 256
 
         L_tmp = L_mult(sub(table[ind + 1], table[ind]), offset)
         lsp[i] = add(table[ind], extract_l(L_shr(L_tmp, 9)))
 
+
 def Lsp_lsf(lsp: List[int], lsf: List[int], m: int) -> None:
+    """
     # (i) Q15 : lsp[m] (range: -1<=val<1)
     # (o) Q15 : lsf[m] normalized (range: 0.0<=val<=0.5)
     # (i)     : LPC order
+    """
 
-    ind = 63 # begin at end of table -1 
+    ind = 63  # begin at end of table -1
 
     for i in range(m - 1, -1, -1):
-        # find value in table that is just greater than lsp[i] 
+        # find value in table that is just greater than lsp[i]
         while sub(table[ind], lsp[i]) < 0:
             ind = sub(ind, 1)
 
-        # acos(lsp[i])= ind*256 + ( ( lsp[i]-table[ind] ) * slope[ind] )/4096 
+        # acos(lsp[i])= ind*256 + ( ( lsp[i]-table[ind] ) * slope[ind] )/4096
 
         L_tmp = L_mult(sub(lsp[i], table[ind]), slope[ind])
-        tmp = round(L_shl(L_tmp, 3))                  #(lsp[i]-table[ind])*slope[ind])>>12
+        tmp = round(L_shl(L_tmp, 3))  # (lsp[i]-table[ind])*slope[ind])>>12
         lsf[i] = add(tmp, shl(ind, 8))
 
 
 def Lsf_lsp2(lsf: List[int], lsp: List[int], m: int) -> None:
+    """
     # (i) Q13 : lsf[m] (range: 0.0<=val<PI)
     # (o) Q15 : lsp[m] (range: -1<=val<1)
     # (i)     : LPC order
+    """
 
     for i in range(0, m):
         #    freq = abs_s(freq)
-        freq = mult(lsf[i], 20861)         # 20861: 1.0/(2.0*PI) in Q17 
-        ind = shr(freq, 8)                 # ind    = b8-b15 of freq 
-        offset = freq & 0x00ff                      # offset = b0-b7  of freq 
+        freq = mult(lsf[i], 20861)         # 20861: 1.0/(2.0*PI) in Q17
+        ind = shr(freq, 8)                 # ind    = b8-b15 of freq
+        offset = freq & 0x00ff                      # offset = b0-b7  of freq
 
         if sub(ind, 63) > 0:
             ind = 63                                # 0 <= ind <= 63
 
-        # lsp[i] = table2[ind]+ (slope_cos[ind]*offset >> 12) 
+        # lsp[i] = table2[ind]+ (slope_cos[ind]*offset >> 12)
 
-        L_tmp = L_mult(slope_cos[ind], offset) # L_tmp in Q28 
+        L_tmp = L_mult(slope_cos[ind], offset)  # L_tmp in Q28
         lsp[i] = add(table2[ind], extract_l(L_shr(L_tmp, 13)))
 
+
 def Lsp_lsf2(lsp: List[int], lsf: List[int], m: int) -> None:
+    """
     # (i) Q15 : lsp[m] (range: -1<=val<1)
     # (o) Q13 : lsf[m] (range: 0.0<=val<PI)
     # (i)     : LPC order
+    """
 
-    ind = 63 # begin at end of table2 -1 
+    ind = 63  # begin at end of table2 -1
 
     for i in range(m - 1, -1, -1):
-        # find value in table2 that is just greater than lsp[i] 
+        # find value in table2 that is just greater than lsp[i]
         while sub(table2[ind], lsp[i]) < 0:
             ind = sub(ind, 1)
-            
+
             if ind <= 0:
                 break
 
         offset = sub(lsp[i], table2[ind])
 
-        # acos(lsp[i])= ind*512 + (slope_acos[ind]*offset >> 11) 
+        # acos(lsp[i])= ind*512 + (slope_acos[ind]*offset >> 11)
 
-        L_tmp = L_mult(slope_acos[ind], offset) # L_tmp in Q28 
+        L_tmp = L_mult(slope_acos[ind], offset)  # L_tmp in Q28
         freq = add(shl(ind, 9), extract_l(L_shr(L_tmp, 12)))
-        lsf[i] = mult(freq, 25736) # 25736: 2.0*PI in Q12 
+        lsf[i] = mult(freq, 25736)  # 25736: 2.0*PI in Q12
+
+
+def Weight_Az(a: List[int], gamma: int, m: int, ap: List[int]) -> None:
+    """
+    (i) Q12 : a[m+1]  LPC coefficients
+    (i) Q15 : Spectral expansion factor.
+    (i)     : LPC order.
+    (o) Q12 : Spectral expanded LPC coefficients
+    """
+
+    ap[0] = a[0]
+    fac = gamma
+
+    for i in range(1, m):
+        ap[i] = round(L_mult(a[i], fac))
+        fac = round(L_mult(fac, gamma))
+
+    ap[m] = round(L_mult(a[m], fac))
+
+
+def Weight_Az_2(a: List[int], gamma: int, m: int) -> List[int]:
+    """
+    # (i) Q12 : a[m+1]  LPC coefficients
+    # (i) Q15 : Spectral expansion factor.
+    # (i)     : LPC order.
+    # (o) Q12 : Spectral expanded LPC coefficients
+    """
+
+    result = [0] * m
+    result[0] = a[0]
+
+    fac = gamma
+
+    for i in range(1, m):
+        result[i] = round(L_mult(a[i], fac))
+        fac = round(L_mult(fac, gamma))
+
+    result[m] = round(L_mult(a[m], fac))
 
 
 def Int_qlpc(lsp_old: List[int], lsp_new: List[int], Az: List[int]) -> None:
+    """
     # input : LSP vector of past frame
     # input : LSP vector of present frame
     # output: interpolated Az() for the 2 subframes
+    """
 
     lsp = [0] * M
 
-    #  lsp[i] = lsp_new[i] * 0.5 + lsp_old[i] * 0.5 
+    #  lsp[i] = lsp_new[i] * 0.5 + lsp_old[i] * 0.5
 
     for i in range(0, M):
         lsp[i] = add(shr(lsp_new[i], 1), shr(lsp_old[i], 1))
 
-    Lsp_Az(lsp, Az, 0)              # Subframe 1 
+    Lsp_Az(lsp, Az, 0)              # Subframe 1
 
-    Lsp_Az(lsp_new, Az, MP1)        # Subframe 2 
+    Lsp_Az(lsp_new, Az, MP1)        # Subframe 2

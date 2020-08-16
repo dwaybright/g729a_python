@@ -4,10 +4,12 @@ import ld8a
 from typing import List
 
 def Convolve(x: List[int], h: List[int], y: List[int], L: int) -> None:
+    """
     # (i)     : input vector
     # (i) Q12 : impulse response
     # (o)     : output vector
     # (i)     : vector size
+    """
 
     for n in range(0, L):
         s = 0
@@ -17,13 +19,15 @@ def Convolve(x: List[int], h: List[int], y: List[int], L: int) -> None:
         s    = basic_op.L_shl(s, 3)                   # h is in Q12 and saturation
         y[n] = basic_op.extract_h(s)
 
-def yn_filt(a: List[int], x: List[int], y: List[int], lg: int, mem: List[int], update: int) -> None:
+def Syn_filt(a: List[int], x: List[int], y: List[int], lg: int, mem: List[int], update: int) -> None:
+    """
     # (i) Q12 : a[m+1] prediction coefficients   (m=10)
     # (i)     : input signal
     # (o)     : output signal
     # (i)     : size of filtering
     # (i/o)   : memory associated with this filtering.
     # (i)     : 0=no update, 1=update of memory.
+    """
 
     #Word16 i, j
     #Word32 s
@@ -58,10 +62,12 @@ def yn_filt(a: List[int], x: List[int], y: List[int], lg: int, mem: List[int], u
 
 
 def Residu(a: List[int], x: List[int], y: List[int], lg: int) -> None:
+    """
     # (i) Q12 : prediction coefficients 
     # (i)     : speech (values x[-m..-1] are needed
     # (o)     : residual signal 
     # (i)     : size of filtering
+    """
 
     for i in range(0, lg):
         s = basic_op.L_mult(x[i], a[0])

@@ -5,9 +5,11 @@ import tab_ld8a
 from typing import Tuple
 
 def Pow2(exponent: int, fraction: int) -> int:
+    """
     # (o) Q0  : result       (range: 0<=val<=0x7fffffff)
     # (i) Q0  : Integer part.      (range: 0<=val<=30)
     # (i) Q15 : Fractional part.   (range: 0.0<=val<1.0)
+    """
 
     L_x = basic_op.L_mult(fraction, 32)         # L_x = fraction<<6
     i   = basic_op.extract_h(L_x)               # Extract b10-b15 of fraction 
@@ -25,9 +27,11 @@ def Pow2(exponent: int, fraction: int) -> int:
     return L_x
 
 def Log2(L_x: int, exponent: int, fraction: int) -> Tuple[int, int]:
+    """
     # (i) Q0 : input value 
     # (o) Q0 : Integer part of Log2.   (range: 0<=val<=30)
     # (o) Q15: Fractional  part of Log2. (range: 0<=val<1)
+    """
 
     if  L_x <= 0:
         return (0, 0)
@@ -54,8 +58,10 @@ def Log2(L_x: int, exponent: int, fraction: int) -> Tuple[int, int]:
     return (exponent, fraction)
 
 def Inv_sqrt(L_x) -> int:
+    """
     # (o) Q30 : output value   (range: 0<=val<1)
     # (i) Q0  : input value    (range: 0<=val<=7fffffff)
+    """
 
     if L_x <= 0: 
         return basic_op.MAX_INT_30

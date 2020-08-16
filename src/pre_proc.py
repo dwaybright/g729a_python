@@ -28,8 +28,10 @@ def Init_Pre_Process() -> None:
 
 
 def Pre_Process(signal: List[int], lg: int) -> None:
+    """
     # input/output signal
     # length of signal
+    """
 
     global y2_hi
     global y2_lo
