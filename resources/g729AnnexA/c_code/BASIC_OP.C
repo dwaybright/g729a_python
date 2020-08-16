@@ -956,6 +956,9 @@ Word32 L_add_c(Word32 L_var1, Word32 L_var2)
 
    L_test = L_var1 + L_var2;
 
+//     printf("\nprint(f\"\t\tL_var1: %d    L_var2: %d\")\n", L_var1, L_var2);
+//    printf("\nprint(f\"\t\tL_var_out: %d    L_test: %d\")\n", L_var_out, L_test);
+
    if ((L_var1>0) && (L_var2 >0) && (L_test < 0))
      {
       Overflow = 1;
