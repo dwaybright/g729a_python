@@ -84,15 +84,15 @@ int main(int argc, char *argv[] )
     // test_L_deposit_l();
     // test_L_mac();
     // test_L_macNs();
-    // test_L_msu();            // failing
-    // test_L_msuNs();          // failing
+    // test_L_msu();
+    // test_L_msuNs();
     // test_L_mult();
     // test_L_negate();
     // test_L_sat();
     // test_L_shl();            // passing (with basic_op.c change for var2=MIN_32)
     // test_L_shr_r();
     // test_L_shr();            // passing (with basic_op.c change for var2=MIN_32)
-    test_L_sub_c();          // failing
+    // test_L_sub_c();
     // test_L_sub();
     // test_mac_r();
     // test_msu_r();

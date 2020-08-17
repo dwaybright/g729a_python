@@ -216,18 +216,20 @@ def L_add_c(L_var1, L_var2) -> int:
     L_test = L_var1 + L_var2
 
     # Boundary cleanups
-    if L_var_out <= MIN_INT_32:
-        L_var_out = (-2 * MIN_INT_32) + L_var_out
-        L_test = (-2 * MIN_INT_32) + L_test
+    L_var_out = variableCleaner(L_var_out)
+    L_test = variableCleaner(L_test)
+    # if L_var_out <= MIN_INT_32:
+    #     L_var_out = (-2 * MIN_INT_32) + L_var_out
+    #     L_test = (-2 * MIN_INT_32) + L_test
 
-        if L_var_out > MAX_INT_32:
-            L_var_out = MIN_INT_32
-    elif L_var_out > MAX_INT_32:
-        L_var_out = (2 * MIN_INT_32) + L_var_out
+    #     if L_var_out > MAX_INT_32:
+    #         L_var_out = MIN_INT_32
+    # elif L_var_out > MAX_INT_32:
+    #     L_var_out = (2 * MIN_INT_32) + L_var_out
     
     
-    if L_test > MAX_INT_32:
-        L_test = MIN_INT_32
+    # if L_test > MAX_INT_32:
+    #     L_test = MIN_INT_32
     
     # print(f"\t\tPython: L_var1: {L_var1}    L_var2: {L_var2}")
     # print(f"\t\tPython: L_var_out: {L_var_out}    L_test: {L_test}")
