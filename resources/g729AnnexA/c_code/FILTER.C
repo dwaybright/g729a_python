@@ -22,26 +22,26 @@
 #include "ld8a.h"
 
 void Convolve(
-  Word16 x[],      /* (i)     : input vector                           */
-  Word16 h[],      /* (i) Q12 : impulse response                       */
-  Word16 y[],      /* (o)     : output vector                          */
-  Word16 L         /* (i)     : vector size                            */
+    Word16 x[], /* (i)     : input vector                           */
+    Word16 h[], /* (i) Q12 : impulse response                       */
+    Word16 y[], /* (o)     : output vector                          */
+    Word16 L    /* (i)     : vector size                            */
 )
 {
-   Word16 i, n;
-   Word32 s;
+    Word16 i, n;
+    Word32 s;
 
-   for (n = 0; n < L; n++)
-   {
-     s = 0;
-     for (i = 0; i <= n; i++)
-       s = L_mac(s, x[i], h[n-i]);
+    for (n = 0; n < L; n++)
+    {
+        s = 0;
+        for (i = 0; i <= n; i++)
+            s = L_mac(s, x[i], h[n - i]);
 
-     s    = L_shl(s, 3);                   /* h is in Q12 and saturation */
-     y[n] = extract_h(s);
-   }
+        s = L_shl(s, 3); /* h is in Q12 and saturation */
+        y[n] = extract_h(s);
+    }
 
-   return;
+    return;
 }
 
 /*-----------------------------------------------------*
@@ -50,56 +50,55 @@ void Convolve(
  * Do the synthesis filtering 1/A(z).                  *
  *-----------------------------------------------------*/
 
-
 void Syn_filt(
-  Word16 a[],     /* (i) Q12 : a[m+1] prediction coefficients   (m=10)  */
-  Word16 x[],     /* (i)     : input signal                             */
-  Word16 y[],     /* (o)     : output signal                            */
-  Word16 lg,      /* (i)     : size of filtering                        */
-  Word16 mem[],   /* (i/o)   : memory associated with this filtering.   */
-  Word16 update   /* (i)     : 0=no update, 1=update of memory.         */
+    Word16 a[],   /* (i) Q12 : a[m+1] prediction coefficients   (m=10)  */
+    Word16 x[],   /* (i)     : input signal                             */
+    Word16 y[],   /* (o)     : output signal                            */
+    Word16 lg,    /* (i)     : size of filtering                        */
+    Word16 mem[], /* (i/o)   : memory associated with this filtering.   */
+    Word16 update /* (i)     : 0=no update, 1=update of memory.         */
 )
 {
-  Word16 i, j;
-  Word32 s;
-  Word16 tmp[100];     /* This is usually done by memory allocation (lg+M) */
-  Word16 *yy;
+    Word16 i, j;
+    Word32 s;
+    Word16 tmp[100]; /* This is usually done by memory allocation (lg+M) */
+    Word16 *yy;
 
-  /* Copy mem[] to yy[] */
+    /* Copy mem[] to yy[] */
 
-  yy = tmp;
+    yy = tmp;
 
-  for(i=0; i<M; i++)
-  {
-    *yy++ = mem[i];
-  }
+    for (i = 0; i < M; i++)
+    {
+        *yy++ = mem[i];
+    }
 
-  /* Do the filtering. */
+    /* Do the filtering. */
 
-  for (i = 0; i < lg; i++)
-  {
-    s = L_mult(x[i], a[0]);
-    for (j = 1; j <= M; j++)
-      s = L_msu(s, a[j], yy[-j]);
+    for (i = 0; i < lg; i++)
+    {
+        s = L_mult(x[i], a[0]);
+        for (j = 1; j <= M; j++)
+            s = L_msu(s, a[j], yy[-j]);
 
-    s = L_shl(s, 3);
-    *yy++ = round(s);
-  }
+        s = L_shl(s, 3);
+        *yy++ = round(s);
+    }
 
-  for(i=0; i<lg; i++)
-  {
-    y[i] = tmp[i+M];
-  }
+    for (i = 0; i < lg; i++)
+    {
+        y[i] = tmp[i + M];
+    }
 
-  /* Update of memory if update==1 */
+    /* Update of memory if update==1 */
 
-  if(update != 0)
-     for (i = 0; i < M; i++)
-     {
-       mem[i] = y[lg-M+i];
-     }
+    if (update != 0)
+        for (i = 0; i < M; i++)
+        {
+            mem[i] = y[lg - M + i];
+        }
 
- return;
+    return;
 }
 
 /*-----------------------------------------------------------------------*
@@ -109,24 +108,23 @@ void Syn_filt(
  *-----------------------------------------------------------------------*/
 
 void Residu(
-  Word16 a[],    /* (i) Q12 : prediction coefficients                     */
-  Word16 x[],    /* (i)     : speech (values x[-m..-1] are needed         */
-  Word16 y[],    /* (o)     : residual signal                             */
-  Word16 lg      /* (i)     : size of filtering                           */
+    Word16 a[], /* (i) Q12 : prediction coefficients                     */
+    Word16 x[], /* (i)     : speech (values x[-m..-1] are needed         */
+    Word16 y[], /* (o)     : residual signal                             */
+    Word16 lg   /* (i)     : size of filtering                           */
 )
 {
-  Word16 i, j;
-  Word32 s;
+    Word16 i, j;
+    Word32 s;
 
-  for (i = 0; i < lg; i++)
-  {
-    s = L_mult(x[i], a[0]);
-    for (j = 1; j <= M; j++)
-      s = L_mac(s, a[j], x[i-j]);
+    for (i = 0; i < lg; i++)
+    {
+        s = L_mult(x[i], a[0]);
+        for (j = 1; j <= M; j++)
+            s = L_mac(s, a[j], x[i - j]);
 
-    s = L_shl(s, 3);
-    y[i] = round(s);
-  }
-  return;
+        s = L_shl(s, 3);
+        y[i] = round(s);
+    }
+    return;
 }
-

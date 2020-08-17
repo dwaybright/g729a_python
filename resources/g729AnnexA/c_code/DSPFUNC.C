@@ -32,29 +32,28 @@
  |___________________________________________________________________________|
 */
 
-
-Word32 Pow2(        /* (o) Q0  : result       (range: 0<=val<=0x7fffffff) */
-  Word16 exponent,  /* (i) Q0  : Integer part.      (range: 0<=val<=30)   */
-  Word16 fraction   /* (i) Q15 : Fractional part.   (range: 0.0<=val<1.0) */
+Word32 Pow2(                 /* (o) Q0  : result       (range: 0<=val<=0x7fffffff) */
+            Word16 exponent, /* (i) Q0  : Integer part.      (range: 0<=val<=30)   */
+            Word16 fraction  /* (i) Q15 : Fractional part.   (range: 0.0<=val<1.0) */
 )
 {
-  Word16 exp, i, a, tmp;
-  Word32 L_x;
+    Word16 exp, i, a, tmp;
+    Word32 L_x;
 
-  L_x = L_mult(fraction, 32);           /* L_x = fraction<<6           */
-  i   = extract_h(L_x);                 /* Extract b10-b15 of fraction */
-  L_x = L_shr(L_x, 1);
-  a   = extract_l(L_x);                 /* Extract b0-b9   of fraction */
-  a   = a & (Word16)0x7fff;
+    L_x = L_mult(fraction, 32); /* L_x = fraction<<6           */
+    i = extract_h(L_x);         /* Extract b10-b15 of fraction */
+    L_x = L_shr(L_x, 1);
+    a = extract_l(L_x); /* Extract b0-b9   of fraction */
+    a = a & (Word16)0x7fff;
 
-  L_x = L_deposit_h(tabpow[i]);         /* tabpow[i] << 16        */
-  tmp = sub(tabpow[i], tabpow[i+1]);    /* tabpow[i] - tabpow[i+1] */
-  L_x = L_msu(L_x, tmp, a);             /* L_x -= tmp*a*2        */
+    L_x = L_deposit_h(tabpow[i]);        /* tabpow[i] << 16        */
+    tmp = sub(tabpow[i], tabpow[i + 1]); /* tabpow[i] - tabpow[i+1] */
+    L_x = L_msu(L_x, tmp, a);            /* L_x -= tmp*a*2        */
 
-  exp = sub(30, exponent);
-  L_x = L_shr_r(L_x, exp);
+    exp = sub(30, exponent);
+    L_x = L_shr_r(L_x, exp);
 
-  return(L_x);
+    return (L_x);
 }
 
 /*___________________________________________________________________________
@@ -81,41 +80,41 @@ Word32 Pow2(        /* (o) Q0  : result       (range: 0<=val<=0x7fffffff) */
 */
 
 void Log2(
-  Word32 L_x,       /* (i) Q0 : input value                                 */
-  Word16 *exponent, /* (o) Q0 : Integer part of Log2.   (range: 0<=val<=30) */
-  Word16 *fraction  /* (o) Q15: Fractional  part of Log2. (range: 0<=val<1) */
+    Word32 L_x,       /* (i) Q0 : input value                                 */
+    Word16 *exponent, /* (o) Q0 : Integer part of Log2.   (range: 0<=val<=30) */
+    Word16 *fraction  /* (o) Q15: Fractional  part of Log2. (range: 0<=val<1) */
 )
 {
-  Word16 exp, i, a, tmp;
-  Word32 L_y;
+    Word16 exp, i, a, tmp;
+    Word32 L_y;
 
-  if( L_x <= (Word32)0 )
-  {
-    *exponent = 0;
-    *fraction = 0;
+    if (L_x <= (Word32)0)
+    {
+        *exponent = 0;
+        *fraction = 0;
+        return;
+    }
+
+    exp = norm_l(L_x);
+    L_x = L_shl(L_x, exp); /* L_x is normalized */
+
+    *exponent = sub(30, exp);
+
+    L_x = L_shr(L_x, 9);
+    i = extract_h(L_x); /* Extract b25-b31 */
+    L_x = L_shr(L_x, 1);
+    a = extract_l(L_x); /* Extract b10-b24 of fraction */
+    a = a & (Word16)0x7fff;
+
+    i = sub(i, 32);
+
+    L_y = L_deposit_h(tablog[i]);        /* tablog[i] << 16        */
+    tmp = sub(tablog[i], tablog[i + 1]); /* tablog[i] - tablog[i+1] */
+    L_y = L_msu(L_y, tmp, a);            /* L_y -= tmp*a*2        */
+
+    *fraction = extract_h(L_y);
+
     return;
-  }
-
-  exp = norm_l(L_x);
-  L_x = L_shl(L_x, exp );               /* L_x is normalized */
-
-  *exponent = sub(30, exp);
-
-  L_x = L_shr(L_x, 9);
-  i   = extract_h(L_x);                 /* Extract b25-b31 */
-  L_x = L_shr(L_x, 1);
-  a   = extract_l(L_x);                 /* Extract b10-b24 of fraction */
-  a   = a & (Word16)0x7fff;
-
-  i   = sub(i, 32);
-
-  L_y = L_deposit_h(tablog[i]);         /* tablog[i] << 16        */
-  tmp = sub(tablog[i], tablog[i+1]);    /* tablog[i] - tablog[i+1] */
-  L_y = L_msu(L_y, tmp, a);             /* L_y -= tmp*a*2        */
-
-  *fraction = extract_h( L_y);
-
-  return;
 }
 
 /*___________________________________________________________________________
@@ -143,41 +142,39 @@ void Log2(
  |___________________________________________________________________________|
 */
 
-
-Word32 Inv_sqrt(   /* (o) Q30 : output value   (range: 0<=val<1)           */
-  Word32 L_x       /* (i) Q0  : input value    (range: 0<=val<=7fffffff)   */
+Word32 Inv_sqrt(           /* (o) Q30 : output value   (range: 0<=val<1)           */
+                Word32 L_x /* (i) Q0  : input value    (range: 0<=val<=7fffffff)   */
 )
 {
-  Word16 exp, i, a, tmp;
-  Word32 L_y;
+    Word16 exp, i, a, tmp;
+    Word32 L_y;
 
-  if( L_x <= (Word32)0) return ( (Word32)0x3fffffffL);
+    if (L_x <= (Word32)0)
+        return ((Word32)0x3fffffffL);
 
-  exp = norm_l(L_x);
-  L_x = L_shl(L_x, exp );               /* L_x is normalize */
+    exp = norm_l(L_x);
+    L_x = L_shl(L_x, exp); /* L_x is normalize */
 
-  exp = sub(30, exp);
-  if( (exp & 1) == 0 )                  /* If exponent even -> shift right */
-      L_x = L_shr(L_x, 1);
+    exp = sub(30, exp);
+    if ((exp & 1) == 0) /* If exponent even -> shift right */
+        L_x = L_shr(L_x, 1);
 
-  exp = shr(exp, 1);
-  exp = add(exp, 1);
+    exp = shr(exp, 1);
+    exp = add(exp, 1);
 
-  L_x = L_shr(L_x, 9);
-  i   = extract_h(L_x);                 /* Extract b25-b31 */
-  L_x = L_shr(L_x, 1);
-  a   = extract_l(L_x);                 /* Extract b10-b24 */
-  a   = a & (Word16)0x7fff;
+    L_x = L_shr(L_x, 9);
+    i = extract_h(L_x); /* Extract b25-b31 */
+    L_x = L_shr(L_x, 1);
+    a = extract_l(L_x); /* Extract b10-b24 */
+    a = a & (Word16)0x7fff;
 
-  i   = sub(i, 16);
+    i = sub(i, 16);
 
-  L_y = L_deposit_h(tabsqr[i]);         /* tabsqr[i] << 16          */
-  tmp = sub(tabsqr[i], tabsqr[i+1]);    /* tabsqr[i] - tabsqr[i+1])  */
-  L_y = L_msu(L_y, tmp, a);             /* L_y -=  tmp*a*2         */
+    L_y = L_deposit_h(tabsqr[i]);        /* tabsqr[i] << 16          */
+    tmp = sub(tabsqr[i], tabsqr[i + 1]); /* tabsqr[i] - tabsqr[i+1])  */
+    L_y = L_msu(L_y, tmp, a);            /* L_y -=  tmp*a*2         */
 
-  L_y = L_shr(L_y, exp);                /* denormalization */
+    L_y = L_shr(L_y, exp); /* denormalization */
 
-  return(L_y);
+    return (L_y);
 }
-
-

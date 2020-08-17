@@ -52,9 +52,9 @@
 
 void L_Extract(Word32 L_32, Word16 *hi, Word16 *lo)
 {
-  *hi  = extract_h(L_32);
-  *lo  = extract_l( L_msu( L_shr(L_32, 1) , *hi, 16384));  /* lo = L_32>>1   */
-  return;
+    *hi = extract_h(L_32);
+    *lo = extract_l(L_msu(L_shr(L_32, 1), *hi, 16384)); /* lo = L_32>>1   */
+    return;
 }
 
 /*___________________________________________________________________________
@@ -80,10 +80,10 @@ void L_Extract(Word32 L_32, Word16 *hi, Word16 *lo)
 
 Word32 L_Comp(Word16 hi, Word16 lo)
 {
-  Word32 L_32;
+    Word32 L_32;
 
-  L_32 = L_deposit_h(hi);
-  return( L_mac(L_32, lo, 1));          /* = hi<<16 + lo<<1 */
+    L_32 = L_deposit_h(hi);
+    return (L_mac(L_32, lo, 1)); /* = hi<<16 + lo<<1 */
 }
 
 /*___________________________________________________________________________
@@ -108,13 +108,13 @@ Word32 L_Comp(Word16 hi, Word16 lo)
 
 Word32 Mpy_32(Word16 hi1, Word16 lo1, Word16 hi2, Word16 lo2)
 {
-  Word32 L_32;
+    Word32 L_32;
 
-  L_32 = L_mult(hi1, hi2);
-  L_32 = L_mac(L_32, mult(hi1, lo2) , 1);
-  L_32 = L_mac(L_32, mult(lo1, hi2) , 1);
+    L_32 = L_mult(hi1, hi2);
+    L_32 = L_mac(L_32, mult(hi1, lo2), 1);
+    L_32 = L_mac(L_32, mult(lo1, hi2), 1);
 
-  return( L_32 );
+    return (L_32);
 }
 
 /*___________________________________________________________________________
@@ -139,12 +139,12 @@ Word32 Mpy_32(Word16 hi1, Word16 lo1, Word16 hi2, Word16 lo2)
 
 Word32 Mpy_32_16(Word16 hi, Word16 lo, Word16 n)
 {
-  Word32 L_32;
+    Word32 L_32;
 
-  L_32 = L_mult(hi, n);
-  L_32 = L_mac(L_32, mult(lo, n) , 1);
+    L_32 = L_mult(hi, n);
+    L_32 = L_mac(L_32, mult(lo, n), 1);
 
-  return( L_32 );
+    return (L_32);
 }
 
 /*___________________________________________________________________________
@@ -193,33 +193,30 @@ Word32 Mpy_32_16(Word16 hi, Word16 lo, Word16 n)
 
 Word32 Div_32(Word32 L_num, Word16 denom_hi, Word16 denom_lo)
 {
-  Word16 approx, hi, lo, n_hi, n_lo;
-  Word32 L_32;
+    Word16 approx, hi, lo, n_hi, n_lo;
+    Word32 L_32;
 
+    /* First approximation: 1 / L_denom = 1/denom_hi */
 
-  /* First approximation: 1 / L_denom = 1/denom_hi */
+    approx = div_s((Word16)0x3fff, denom_hi); /* result in Q14 */
+                                              /* Note: 3fff = 0.5 in Q15 */
 
-  approx = div_s( (Word16)0x3fff, denom_hi);    /* result in Q14 */
-                                                /* Note: 3fff = 0.5 in Q15 */
+    /* 1/L_denom = approx * (2.0 - L_denom * approx) */
 
-  /* 1/L_denom = approx * (2.0 - L_denom * approx) */
+    L_32 = Mpy_32_16(denom_hi, denom_lo, approx); /* result in Q30 */
 
-  L_32 = Mpy_32_16(denom_hi, denom_lo, approx); /* result in Q30 */
+    L_32 = L_sub((Word32)0x7fffffffL, L_32); /* result in Q30 */
 
+    L_Extract(L_32, &hi, &lo);
 
-  L_32 = L_sub( (Word32)0x7fffffffL, L_32);      /* result in Q30 */
+    L_32 = Mpy_32_16(hi, lo, approx); /* = 1/L_denom in Q29 */
 
-  L_Extract(L_32, &hi, &lo);
+    /* L_num * (1/L_denom) */
 
-  L_32 = Mpy_32_16(hi, lo, approx);             /* = 1/L_denom in Q29 */
+    L_Extract(L_32, &hi, &lo);
+    L_Extract(L_num, &n_hi, &n_lo);
+    L_32 = Mpy_32(n_hi, n_lo, hi, lo); /* result in Q29   */
+    L_32 = L_shl(L_32, 2);             /* From Q29 to Q31 */
 
-  /* L_num * (1/L_denom) */
-
-  L_Extract(L_32, &hi, &lo);
-  L_Extract(L_num, &n_hi, &n_lo);
-  L_32 = Mpy_32(n_hi, n_lo, hi, lo);            /* result in Q29   */
-  L_32 = L_shl(L_32, 2);                        /* From Q29 to Q31 */
-
-  return( L_32 );
+    return (L_32);
 }
-
