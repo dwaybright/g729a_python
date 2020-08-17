@@ -266,20 +266,31 @@ def L_add_c(L_var1, L_var2) -> int:
 def L_sub_c(L_var1, L_var2) -> Tuple[int, int, int]:
     carry_int = 0
 
+    #print(f"\t\tPY calling L_sub_c({L_var1}, {L_var2}) with Overflow={getOverflow()} and Carry={getCarry()}")
+
     if getCarry() > 0:
         setCarry(0)
 
         if L_var2 != MIN_INT_32:
             L_var_out = L_add_c(L_var1, -L_var2)
+            L_var_out = variableCleaner(L_var_out)
+            #print(f"\t\t\tPY CARRY_1: L_var_out={L_var_out} with Overflow={getOverflow()} and Carry={getCarry()}")
         else:
             L_var_out = L_var1 - L_var2
+            L_var_out = variableCleaner(L_var_out)
 
             if L_var1 > 0:
                 setOverflow(1)
                 setCarry(0)
+            
+            #print(f"\t\t\tPY CARRY_2: L_var_out={L_var_out} with Overflow={getOverflow()} and Carry={getCarry()}")
     else:
         L_var_out = L_var1 - L_var2 - 1
         L_test = L_var1 - L_var2
+
+        # Clean output
+        L_var_out = variableCleaner(L_var_out)
+        L_test = variableCleaner(L_test)
 
         if (L_test < 0) and (L_var1 > 0) and (L_var2 < 0):
             setOverflow(1)
@@ -290,6 +301,8 @@ def L_sub_c(L_var1, L_var2) -> Tuple[int, int, int]:
         elif (L_test > 0) and ((L_var1 ^ L_var2) > 0):
             setOverflow(0)
             carry_int = 1
+        
+        #print(f"\t\t\tPY NO_CARRY_1: L_var_out={L_var_out} L_test={L_test} with Overflow={getOverflow()} and Carry={getCarry()}")
 
         if L_test == MIN_INT_32:
             setOverflow(1)
@@ -297,7 +310,22 @@ def L_sub_c(L_var1, L_var2) -> Tuple[int, int, int]:
         else:
             setCarry(carry_int)
 
+        #print(f"\t\t\tPY NO_CARRY_2: L_var_out={L_var_out} L_test={L_test} with Overflow={getOverflow()} and Carry={getCarry()}")
+
     return L_var_out
+
+
+def variableCleaner(L_out: int) -> int:
+    # Boundary cleanups
+    if L_out <= MIN_INT_32:
+        L_out = (-2 * MIN_INT_32) + L_out
+
+        if L_out > MAX_INT_32:
+            L_out = MIN_INT_32
+    elif L_out > MAX_INT_32:
+        L_out = (2 * MIN_INT_32) + L_out
+    
+    return L_out
 
 
 # https://github.com/opentelecoms-org/codecs/blob/master/g729/ITU-samples-200701/Soft/g729AnnexA/c_code/BASIC_OP.C#L1180

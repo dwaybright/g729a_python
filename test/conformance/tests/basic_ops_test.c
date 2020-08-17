@@ -4,7 +4,7 @@
 #include "typedef.h"
 #include "basic_op.h"
 
-Word16 MAX_14 = (Word16) 0x00004000;
+Word16 MAX_14 = (Word16) 0x00004000L;
 Word32 MAX_30 = (Word32) 0x3fffffffL;
 Word32 MIN_30 = (Word32) 0xc0000000L;
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[] )
     // Need to append path to python src
     printf("import sys");
     printf("\n");
-    printf("sys.path.append(\"../../../../src\")");
+    printf("sys.path.append(\"../../../src\")");
     printf("\n");
 
     printf("from basic_op import *");
@@ -92,7 +92,7 @@ int main(int argc, char *argv[] )
     // test_L_shl();            // passing (with basic_op.c change for var2=MIN_32)
     // test_L_shr_r();
     // test_L_shr();            // passing (with basic_op.c change for var2=MIN_32)
-    // test_L_sub_c();          // failing
+    test_L_sub_c();          // failing
     // test_L_sub();
     // test_mac_r();
     // test_msu_r();
