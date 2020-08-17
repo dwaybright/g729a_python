@@ -41,50 +41,47 @@
 
 static Word16 y2_hi, y2_lo, y1_hi, y1_lo, x0, x1;
 
-
 /* Initialization of static values */
 
 void Init_Post_Process(void)
 {
-  y2_hi = 0;
-  y2_lo = 0;
-  y1_hi = 0;
-  y1_lo = 0;
-  x0   = 0;
-  x1   = 0;
+    y2_hi = 0;
+    y2_lo = 0;
+    y1_hi = 0;
+    y1_lo = 0;
+    x0 = 0;
+    x1 = 0;
 }
-
 
 void Post_Process(
-  Word16 signal[],    /* input/output signal */
-  Word16 lg)          /* length of signal    */
+    Word16 signal[], /* input/output signal */
+    Word16 lg)       /* length of signal    */
 {
-  Word16 i, x2;
-  Word32 L_tmp;
+    Word16 i, x2;
+    Word32 L_tmp;
 
-  for(i=0; i<lg; i++)
-  {
-     x2 = x1;
-     x1 = x0;
-     x0 = signal[i];
+    for (i = 0; i < lg; i++)
+    {
+        x2 = x1;
+        x1 = x0;
+        x0 = signal[i];
 
-     /*  y[i] = b[0]*x[i]   + b[1]*x[i-1]   + b[2]*x[i-2]    */
-     /*                     + a[1]*y[i-1] + a[2] * y[i-2];      */
+        /*  y[i] = b[0]*x[i]   + b[1]*x[i-1]   + b[2]*x[i-2]    */
+        /*                     + a[1]*y[i-1] + a[2] * y[i-2];      */
 
-     L_tmp     = Mpy_32_16(y1_hi, y1_lo, a100[1]);
-     L_tmp     = L_add(L_tmp, Mpy_32_16(y2_hi, y2_lo, a100[2]));
-     L_tmp     = L_mac(L_tmp, x0, b100[0]);
-     L_tmp     = L_mac(L_tmp, x1, b100[1]);
-     L_tmp     = L_mac(L_tmp, x2, b100[2]);
-     L_tmp     = L_shl(L_tmp, 2);      /* Q29 --> Q31 (Q13 --> Q15) */
+        L_tmp = Mpy_32_16(y1_hi, y1_lo, a100[1]);
+        L_tmp = L_add(L_tmp, Mpy_32_16(y2_hi, y2_lo, a100[2]));
+        L_tmp = L_mac(L_tmp, x0, b100[0]);
+        L_tmp = L_mac(L_tmp, x1, b100[1]);
+        L_tmp = L_mac(L_tmp, x2, b100[2]);
+        L_tmp = L_shl(L_tmp, 2); /* Q29 --> Q31 (Q13 --> Q15) */
 
-     /* Multiplication by two of output speech with saturation. */
-     signal[i] = round(L_shl(L_tmp, 1));
+        /* Multiplication by two of output speech with saturation. */
+        signal[i] = round(L_shl(L_tmp, 1));
 
-     y2_hi = y1_hi;
-     y2_lo = y1_lo;
-     L_Extract(L_tmp, &y1_hi, &y1_lo);
-  }
-  return;
+        y2_hi = y1_hi;
+        y2_lo = y1_lo;
+        L_Extract(L_tmp, &y1_hi, &y1_lo);
+    }
+    return;
 }
-
