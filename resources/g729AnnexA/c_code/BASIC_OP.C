@@ -1066,12 +1066,16 @@ Word32 L_sub_c(Word32 L_var1, Word32 L_var2)
     Word32 L_test;
     Flag carry_int = 0;
 
+    //printf("print(\"\t\t\tcalling L_sub_c(%d, %d) with Overflow=%d and Carry=%d\")\n", L_var1, L_var2, Overflow, Carry);
+
     if (Carry)
     {
         Carry = 0;
         if (L_var2 != MIN_32)
         {
             L_var_out = L_add_c(L_var1, -L_var2);
+
+            //printf("print(\"\t\t\tCARRY_1: L_var_out=%d with Overflow=%d and Carry=%d\")\n", L_var_out, Overflow, Carry);
         }
         else
         {
@@ -1081,7 +1085,11 @@ Word32 L_sub_c(Word32 L_var1, Word32 L_var2)
                 Overflow = 1;
                 Carry = 0;
             }
+
+            //printf("print(\"\t\t\tCARRY_2: L_var_out=%d with Overflow=%d and Carry=%d\")\n", L_var_out, Overflow, Carry);
         }
+
+        
     }
     else
     {
@@ -1104,6 +1112,8 @@ Word32 L_sub_c(Word32 L_var1, Word32 L_var2)
             carry_int = 1;
         }
 
+        //printf("print(\"\t\t\tNO_CARRY_1: L_var_out=%d L_test=%d with Overflow=%d and Carry=%d\")\n", L_var_out, L_test, Overflow, Carry);
+
         if (L_test == MIN_32)
         {
             Overflow = 1;
@@ -1113,6 +1123,8 @@ Word32 L_sub_c(Word32 L_var1, Word32 L_var2)
         {
             Carry = carry_int;
         }
+
+        //printf("print(\"\t\t\tNO_CARRY_2: L_var_out=%d L_test=%d with Overflow=%d and Carry=%d\")\n", L_var_out, L_test, Overflow, Carry);
     }
 
     return (L_var_out);

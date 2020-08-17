@@ -6,13 +6,22 @@ This area provides the ability to test parts of the application to see if the py
 
 The idea for the tests is to build out a python file as output, that then runs the same commands and checks if the two match.
 
-## Build a Test
+## Use Makefile to build C code
+
+1. Build the C code
+```$ cd <project_root>/resources/g729AnnexA/c_code```
+```$ make -f coder.mak```
+
+2. Copy *.o and coder(.exe) generated in step 1 to ```<project_root>/test/conformance/g729a_build```
+
+
+## Building a single Test Suite
 
 To build a test, you need to link to required objects.  Basic form is:
-* ```gcc -O2 -Wall <test.c> <../path/to/first_component.o> ... <../path/to/last_component.o> -I <../path/to/header/files> -o executable```
+* ```gcc -O2 -Wall -g <test.c> <../path/to/first_component.o> ... <../path/to/last_component.o> -I <../path/to/header/files> -o executable```
 
 As an example, to build the basic_ops_test.c:
-* ```gcc -O2 -Wall basic_ops_test.c ../g729a_build/basic_op.o -I ../../../../resources/g729AnnexA/c_code -o test_basic_ops```
+* ```gcc -O2 -Wall -g basic_ops_test.c ../g729a_build/basic_op.o -I ../../../resources/g729AnnexA/c_code -o test_basic_ops```
 
 ## G729AnnexA Build info
 
@@ -34,6 +43,22 @@ Target: x86_64-pc-cygwin
 Configured with: /cygdrive/i/szsz/tmpp/gcc/gcc-9.3.0-2.x86_64/src/gcc-9.3.0/configure --srcdir=/cygdrive/i/szsz/tmpp/gcc/gcc-9.3.0-2.x86_64/src/gcc-9.3.0 --prefix=/usr --exec-prefix=/usr --localstatedir=/var --sysconfdir=/etc --docdir=/usr/share/doc/gcc --htmldir=/usr/share/doc/gcc/html -C --build=x86_64-pc-cygwin --host=x86_64-pc-cygwin --target=x86_64-pc-cygwin --without-libiconv-prefix --without-libintl-prefix --libexecdir=/usr/lib --enable-shared --enable-shared-libgcc --enable-static --enable-version-specific-runtime-libs --enable-bootstrap --enable-__cxa_atexit --with-dwarf2 --with-tune=generic --enable-languages=c,c++,fortran,lto,objc,obj-c++ --enable-graphite --enable-threads=posix --enable-libatomic --enable-libgomp --enable-libquadmath --enable-libquadmath-support --disable-libssp --enable-libada --disable-symvers --with-gnu-ld --with-gnu-as --with-cloog-include=/usr/include/cloog-isl --without-libiconv-prefix --without-libintl-prefix --with-system-zlib --enable-linker-build-id --with-default-libstdcxx-abi=gcc4-compatible --enable-libstdcxx-filesystem-ts
 Thread model: posix
 gcc version 9.3.0 (GCC)
-
-$ make -f coder.mak
 ```
+
+## Specific Test Suite instructions
+
+### Basic_Op Test Suite
+
+1. Ensure 'Use Makefile to build C code' has been done
+
+2. Go to the directory
+    * ```cd <project_root>/test/conformance/tests```
+
+3. Build the test suite program
+    * ```gcc -O2 -Wall -g basic_ops_test.c ../g729a_build/basic_op.o -I ../../../resources/g729AnnexA/c_code -o test_basic_ops```
+
+4. Generate the Python test program from the C test Suite program
+    * ```./test_basic_ops.exe > test_basic_ops.py```
+
+5. Execute the Python test program
+    * ```python3 test_basic_ops.py > python_test_results.txt```
