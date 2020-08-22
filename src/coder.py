@@ -16,9 +16,19 @@ def initialize() -> None:
 
 
 def extractPCMToList(pcm16data: bytearray) -> List[int]:
+    """
+    (i) pcm16data: bytearray - PCM 16-bit data as bytearray
+    (o) pcmIntData: List[int] - PCM integer data as list
+    """
+    pcmIntData = []
+    
+    for i in range(0, len(pcm16data), 2):
+        word16ByteChunk = pcm16data[i:i+1]
+        word16AsInt = int.from_bytes(word16ByteChunk, "little", signed=True)
+        pcmIntData.append(word16AsInt)
 
+    return pcmIntData
 
-    return []
 
 def convertPCMToG729a(pcm16data: bytearray) -> Tuple[bytearray, int]:
     '''
@@ -26,9 +36,10 @@ def convertPCMToG729a(pcm16data: bytearray) -> Tuple[bytearray, int]:
     (o)     Tuple[bytearray, int] - Output G729a data and frame count
     '''
 
+    outputG729aFrameCount = len(pcm16data) / (L_FRAME * 2)
     outputG729a = []
 
-    for i in range(0, len(pcm16data) / L_FRAME):
+    for i in range(0, outputG729aFrameCount):
         new_speech = extractPCMToIntList(pcm16data)
 
         Pre_Process(new_speech, L_FRAME)
